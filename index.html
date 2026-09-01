@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Агент — недвижимость без риэлторов</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#111C33;
+  --navy-60:#5A6577;
+  --navy-40:#8A93A3;
+  --line:#E3E7EF;
+  --surface:#F4F6FA;
+  --white:#fff;
+  --blue:#1B54D6;
+  --blue-soft:#EAF0FE;
+  --agent:#00875A;
+  --agent-soft:#E4F4EE;
+  --hold:#B26A00;
+  --hold-soft:#FDF1DF;
+  --danger:#C0362C;
+  --r:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Manrope',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:#DCE0E8;
+  color:var(--navy);
+  font-size:15px;
+  line-height:1.45;
+  display:flex;justify-content:center;
+  min-height:100vh;
+}
+.phone{
+  width:100%;max-width:430px;background:var(--white);
+  min-height:100vh;position:relative;
+  display:flex;flex-direction:column;
+  box-shadow:0 0 60px rgba(17,28,51,.12);
+}
+button{font-family:inherit;font-size:inherit;color:inherit;border:none;background:none;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:16px;color:inherit;width:100%;
+  border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--white);outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+textarea{resize:none;line-height:1.5}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+/* header */
+.hdr{position:sticky;top:0;z-index:20;background:var(--white);border-bottom:1px solid var(--line);
+  padding:14px 18px 12px;display:flex;align-items:center;gap:10px}
+.hdr h1{font-size:19px;font-weight:800;letter-spacing:-.02em;margin:0;flex:1}
+.hdr .sub{font-size:12.5px;color:var(--navy-40);font-weight:500;margin-top:1px}
+.back{font-size:22px;font-weight:600;color:var(--navy-60);width:26px;margin-left:-4px}
+
+/* balance pill in header */
+.bal{display:flex;align-items:center;gap:6px;background:var(--surface);border-radius:999px;
+  padding:6px 11px;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.bal .dot{width:6px;height:6px;border-radius:50%;background:var(--agent)}
+
+.scroll{flex:1;overflow-y:auto;padding:16px 18px 96px;-webkit-overflow-scrolling:touch}
+
+/* tabs */
+.tabs{position:sticky;bottom:0;display:flex;background:var(--white);border-top:1px solid var(--line);
+  padding:7px 4px calc(7px + env(safe-area-inset-bottom))}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;
+  font-size:10.5px;font-weight:600;color:var(--navy-40);position:relative}
+.tab svg{width:23px;height:23px;stroke-width:1.9}
+.tab.on{color:var(--blue)}
+.tab .badge{position:absolute;top:2px;right:calc(50% - 19px);background:var(--danger);color:#fff;
+  font-size:9.5px;font-weight:800;min-width:16px;height:16px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;padding:0 4px}
+
+/* generic */
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.card + .card{margin-top:10px}
+.muted{color:var(--navy-60);font-size:13.5px}
+.tiny{font-size:12px;color:var(--navy-40);font-weight:500}
+.sec-t{font-size:13px;font-weight:700;color:var(--navy-60);margin:22px 0 9px}
+.sec-t:first-child{margin-top:2px}
+.num{font-variant-numeric:tabular-nums}
+
+.btn{display:block;width:100%;background:var(--blue);color:#fff;font-weight:700;font-size:15.5px;
+  padding:14px;border-radius:12px;text-align:center}
+.btn:active{background:#1544B0}
+.btn.sec{background:var(--surface);color:var(--navy)}
+.btn.ghost{background:none;border:1px solid var(--line);color:var(--navy)}
+.btn[disabled]{opacity:.4}
+.row2{display:flex;gap:8px}
+.row2 > *{flex:1}
+
+/* agent strip — signature element */
+.agent-strip{background:var(--navy);color:#fff;border-radius:var(--r);padding:14px 15px}
+.agent-strip .top{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;
+  color:#9FE7C8;letter-spacing:.01em}
+.pulse{width:7px;height:7px;border-radius:50%;background:#3DDC97;
+  box-shadow:0 0 0 0 rgba(61,220,151,.65);animation:p 2.4s infinite}
+@keyframes p{70%{box-shadow:0 0 0 9px rgba(61,220,151,0)}100%{box-shadow:0 0 0 0 rgba(61,220,151,0)}}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none}}
+.agent-strip .log{margin-top:10px;font-size:13.5px;line-height:1.6}
+.agent-strip .log div{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
+.agent-strip .log span{color:#B9C2D4;font-variant-numeric:tabular-nums;flex-shrink:0}
+.agent-strip .ttl{border-top:1px solid rgba(255,255,255,.16);margin-top:9px;padding-top:9px;
+  display:flex;justify-content:space-between;font-weight:800;font-size:14px}
+
+/* listing card */
+.obj{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--line)}
+.obj:last-child{border-bottom:none}
+.obj .ph{width:82px;height:70px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(150deg,#C8D2E4,#9FAEC8);position:relative;overflow:hidden}
+.obj .ph::after{content:'';position:absolute;inset:auto 0 0 0;height:34%;background:rgba(17,28,51,.14)}
+.obj .price{font-weight:800;font-size:16px;letter-spacing:-.01em}
+.obj .addr{font-size:13.5px;color:var(--navy-60);margin-top:1px}
+.obj .meta{font-size:12.5px;color:var(--navy-40);margin-top:4px;font-weight:500}
+
+.chip{display:inline-flex;align-items:center;gap:5px;background:var(--surface);border-radius:8px;
+  padding:5px 9px;font-size:12.5px;font-weight:600;margin:0 5px 5px 0}
+.chip.b{background:var(--blue-soft);color:var(--blue)}
+.chip.g{background:var(--agent-soft);color:var(--agent)}
+.chip.h{background:var(--hold-soft);color:var(--hold)}
+.chip.x{border:1px dashed var(--line);background:none;color:var(--navy-60)}
+
+.status{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;
+  padding:4px 8px;border-radius:7px}
+.st-live{background:var(--agent-soft);color:var(--agent)}
+.st-deal{background:var(--blue-soft);color:var(--blue)}
+.st-hold{background:var(--hold-soft);color:var(--hold)}
+.st-off{background:var(--surface);color:var(--navy-40)}
+
+/* steps */
+.steps{display:flex;gap:5px;margin-bottom:18px}
+.steps i{flex:1;height:3px;border-radius:2px;background:var(--line)}
+.steps i.on{background:var(--blue)}
+.step-h{font-size:21px;font-weight:800;letter-spacing:-.025em;line-height:1.2;margin:0 0 5px}
+.step-s{color:var(--navy-60);font-size:14px;margin:0 0 18px}
+.fld{margin-bottom:13px}
+.fld label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+.hint{font-size:12.5px;color:var(--navy-40);margin-top:5px;line-height:1.4}
+
+.ai-note{display:flex;gap:9px;background:var(--agent-soft);border-radius:11px;padding:11px 12px;
+  font-size:13px;line-height:1.5;margin-top:9px}
+.ai-note b{font-weight:700}
+.ai-note.warn{background:var(--hold-soft)}
+.ai-note.bad{background:#FBEBEA}
+.ai-ico{flex-shrink:0;width:19px;height:19px;border-radius:6px;background:var(--agent);color:#fff;
+  font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.ai-note.warn .ai-ico{background:var(--hold)}
+.ai-note.bad .ai-ico{background:var(--danger)}
+
+.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:4px}
+.photos div{aspect-ratio:1;border-radius:10px;background:linear-gradient(150deg,#C8D2E4,#9FAEC8);
+  position:relative;display:flex;align-items:flex-end;padding:6px}
+.photos div b{font-size:10px;font-weight:700;color:#fff;background:rgba(17,28,51,.6);
+  border-radius:5px;padding:2px 5px}
+.photos .add{background:var(--surface);border:1px dashed var(--line);color:var(--navy-40);
+  align-items:center;justify-content:center;cursor:pointer}
+.photos .add.on{border-color:var(--blue);color:var(--blue);background:var(--blue-soft)}
+
+/* chat */
+.chat-list .c{display:flex;gap:11px;padding:13px 0;border-bottom:1px solid var(--line);text-align:left;width:100%}
+.chat-list .c:last-child{border-bottom:none}
+.av{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;
+  justify-content:center;font-weight:800;font-size:15px;color:#fff;background:var(--navy-60)}
+.av.a{background:var(--agent)}
+.c .nm{font-weight:700;font-size:14.5px;display:flex;justify-content:between;gap:8px}
+.c .ls{font-size:13px;color:var(--navy-60);margin-top:2px;overflow:hidden;text-overflow:ellipsis;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+
+.msgs{display:flex;flex-direction:column;gap:9px}
+.m{max-width:82%;padding:10px 13px;border-radius:15px;font-size:14.5px;line-height:1.45}
+.m.in{background:var(--surface);border-bottom-left-radius:5px;align-self:flex-start}
+.m.out{background:var(--blue);color:#fff;border-bottom-right-radius:5px;align-self:flex-end}
+.m.sys{align-self:center;max-width:100%;background:var(--agent-soft);color:#0A5C3F;font-size:13px;
+  border-radius:11px;text-align:center;font-weight:600}
+.m .who{font-size:11.5px;font-weight:700;color:var(--agent);margin-bottom:3px}
+.m .t{font-size:10.5px;opacity:.55;margin-top:3px;font-variant-numeric:tabular-nums}
+
+.banner{border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:12px;
+  padding:13px 14px;margin:12px 0;background:var(--white)}
+.banner h4{margin:0 0 5px;font-size:14.5px;font-weight:800}
+.banner p{margin:0 0 11px;font-size:13.5px;color:var(--navy-60);line-height:1.5}
+.banner.hold{border-left-color:var(--hold)}
+
+.composer{display:flex;gap:8px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line);background:var(--white)}
+.composer input{border-radius:999px}
+.composer button{width:44px;height:44px;border-radius:50%;background:var(--blue);color:#fff;
+  flex-shrink:0;font-size:17px}
+
+.kv{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.kv:last-child{border-bottom:none}
+.kv b{font-weight:700;font-variant-numeric:tabular-nums}
+.link{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;
+  padding:14px 0;border-bottom:1px solid var(--line);font-size:15px;font-weight:600}
+.link:last-child{border-bottom:none}
+.link em{font-style:normal;color:var(--navy-40);font-weight:500;font-size:20px}
+
+.stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat3 div{background:var(--surface);border-radius:11px;padding:11px 10px}
+.stat3 b{display:block;font-size:20px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat3 span{font-size:11.5px;color:var(--navy-60);font-weight:500;line-height:1.3;display:block;margin-top:1px}
+
+.seg{display:flex;background:var(--surface);border-radius:10px;padding:3px;margin-bottom:14px}
+.seg button{flex:1;padding:8px;border-radius:8px;font-size:13px;font-weight:700;color:var(--navy-60)}
+.seg button.on{background:var(--white);color:var(--navy);box-shadow:0 1px 3px rgba(17,28,51,.1)}
+
+.empty{text-align:center;padding:48px 20px}
+.empty p{color:var(--navy-60);font-size:14px;margin:0 0 18px;line-height:1.5}
+.empty h3{font-size:17px;font-weight:800;margin:0 0 6px}
+
+.splash{position:fixed;inset:0;z-index:100;background:var(--navy);color:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 30px calc(46px + env(safe-area-inset-bottom));text-align:center}
+.splash .mark{width:78px;height:78px;border-radius:24px;background:#fff;color:var(--navy);
+  display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:800;
+  letter-spacing:-.04em;margin-bottom:26px}
+.splash h1{font-size:35px;font-weight:800;letter-spacing:-.04em;line-height:1.05;margin:0 0 14px}
+.splash p{color:#B9C2D4;font-size:16px;line-height:1.5;max-width:19em;margin:0 0 40px}
+.splash .facts{display:flex;gap:22px;margin-bottom:40px;flex-wrap:wrap;justify-content:center}
+.splash .facts div b{display:block;font-size:21px;font-weight:800;letter-spacing:-.03em}
+.splash .facts div span{font-size:11.5px;color:#8A93A3;font-weight:600}
+.splash .btn{max-width:320px;background:#fff;color:var(--navy)}
+.splash.gone{opacity:0;pointer-events:none;transition:opacity .35s}
+/* test mode */
+.tpanel{background:var(--surface);border-radius:13px;padding:13px 14px;margin-bottom:12px}
+.tpanel h4{font-size:12.5px;font-weight:700;color:var(--navy-60);margin:0 0 9px;
+  display:flex;justify-content:space-between;align-items:center}
+.tpanel .kvr{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:4px 0;line-height:1.4}
+.tpanel .kvr span:first-child{color:var(--navy-60);flex-shrink:0}
+.tpanel .kvr span:last-child{font-weight:600;text-align:right}
+.tpanel .miss{color:var(--hold);font-weight:600}
+.tstatus{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;
+  padding:4px 9px;border-radius:7px}
+.thinking{display:flex;gap:4px;padding:12px 15px}
+.thinking i{width:6px;height:6px;border-radius:50%;background:var(--navy-40);animation:bl 1.3s infinite}
+.thinking i:nth-child(2){animation-delay:.18s}
+.thinking i:nth-child(3){animation-delay:.36s}
+@keyframes bl{0%,60%,100%{opacity:.25}30%{opacity:1}}
+.tbar{background:var(--blue-soft);border-radius:11px;padding:11px 13px;font-size:13px;
+  line-height:1.5;color:#14357F;margin-bottom:12px}
+.screen{display:none}
+.screen.on{display:flex;flex-direction:column;flex:1;min-height:0}
+.hidden{display:none !important}
+</style>
+</head>
+<body>
+<div class="splash" id="splash">
+  <div class="mark">А</div>
+  <h1>AI Риэлтор</h1>
+  <p>Агент, который продаёт и снимает квартиру за вас. Без посредников и пустых обещаний.</p>
+  <div class="facts">
+    <div><b>1,2 %</b><span>вместо 2–4 %</span></div>
+    <div><b>0 ₽</b><span>за отсев риэлторов</span></div>
+    <div><b>24/7</b><span>агент на связи</span></div>
+  </div>
+  <button class="btn" onclick="start()">Начать</button>
+</div>
+
+<div class="phone">
+
+<!-- ══════════ РЕАЛИЗАЦИЯ ══════════ -->
+<div class="screen on" id="s-sell">
+  <div class="hdr">
+    <div style="flex:1"><h1>Мои объекты</h1><div class="sub">Агент работает по вашим правилам</div></div>
+    <div class="bal"><i class="dot"></i><span class="num">2 480 ₽</span></div>
+  </div>
+  <div class="scroll">
+    <div class="agent-strip">
+      <div class="top"><i class="pulse"></i>Агент на связи · сегодня</div>
+      <div class="log">
+        <div>Ответил на 14 звонков и сообщений<span>28 ₽</span></div>
+        <div>Отсеял 9 риэлторов и 2 нецелевых<span>0 ₽</span></div>
+        <div>Довёл 3 заявки до просмотра<span>36 ₽</span></div>
+      </div>
+      <div class="ttl"><span>Списано за сегодня</span><span class="num">64 ₽</span></div>
+    </div>
+
+    <div class="sec-t" id="objHdr">Размещено</div>
+    <div class="card" style="padding:2px 14px" id="objList"></div>
+    <div id="objEmpty" class="empty hidden">
+      <h3>Объявлений пока нет</h3>
+      <p>Разместите объект — агент начнёт принимать заявки и отсеивать риэлторов сам.</p>
+      <button class="btn" onclick="newObject()">Создать объявление</button>
+      <button class="btn ghost" style="margin-top:8px" onclick="seedDemo()">Заполнить демо-объектами</button>
+    </div>
+
+    <div id="objActions">
+      <div style="margin-top:16px"><button class="btn" onclick="newObject()">Разместить объект</button></div>
+      <div style="margin-top:8px"><button class="btn ghost" onclick="openTest()">Протестировать агента на объекте</button></div>
+    </div>
+
+    <div class="sec-t">Как считается оплата</div>
+    <div class="card">
+      <div class="kv"><span>Ответ агента на входящий</span><b>2 ₽</b></div>
+      <div class="kv"><span>Заявка доведена до просмотра</span><b>12 ₽</b></div>
+      <div class="kv"><span>Отсев риэлтора или спама</span><b>0 ₽</b></div>
+      <div class="kv"><span>Комиссия при сделке</span><b>1,2 %</b></div>
+      <p class="hint" style="margin-top:11px">Списывается по факту. Если агент ничего не сделал — счёт нулевой.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ НОВЫЙ ОБЪЕКТ ══════════ -->
+<div class="screen" id="s-new">
+  <div class="hdr">
+    <button class="back" onclick="newBack()">‹</button>
+    <div style="flex:1"><h1 id="nh">Об объекте</h1><div class="sub"><span id="nn">Шаг 1</span> из 5</div></div>
+  </div>
+  <div class="scroll">
+    <div class="steps"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+
+    <!-- 1 -->
+    <div class="np" data-p="1">
+      <h2 class="step-h">Что вы размещаете</h2>
+      <p class="step-s">Эти данные можно менять в любой момент — агент подхватит изменения сразу.</p>
+      <div class="fld"><label>Сделка</label>
+        <div class="seg" style="margin-bottom:0">
+          <button class="on" onclick="deal('sale',this)">Продажа</button>
+          <button onclick="deal('rent',this)">Аренда</button>
+        </div>
+      </div>
+      <div class="fld"><label>Адрес</label><input placeholder="Город, улица, дом"></div>
+      <div class="row2">
+        <div class="fld"><label id="priceL">Цена, ₽</label><input id="priceI" inputmode="numeric" placeholder="Сумма" oninput="fmtPrice(this)"></div>
+        <div class="fld"><label>Площадь, м²</label><input id="areaI" inputmode="numeric" placeholder="м²"></div>
+      </div>
+      <div id="rentFlds" class="hidden">
+        <div class="row2">
+          <div class="fld"><label>Залог, месяцев</label>
+            <select id="depI"><option>1 месяц</option><option>2 месяца</option><option>Без залога</option></select></div>
+          <div class="fld"><label>Срок аренды</label>
+            <select id="termI"><option>От года</option><option>От 6 месяцев</option><option>Любой</option></select></div>
+        </div>
+        <div class="fld"><label>Что включено в ставку</label>
+          <div id="incChips">
+            <span class="chip b" onclick="tgChip(this)">Коммуналка ✓</span>
+            <span class="chip x" onclick="tgChip(this)">Интернет</span>
+            <span class="chip x" onclick="tgChip(this)">Мебель</span>
+          </div>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="fld"><label>Комнат</label><input id="roomsI" inputmode="numeric" placeholder="Например, 2"></div>
+        <div class="fld"><label>Этаж</label><input id="floorI" placeholder="Например, 7 из 12"></div>
+      </div>
+      <div class="fld"><label>Описание</label>
+        <textarea rows="3" placeholder="Что важно знать о квартире"></textarea>
+      </div>
+      <div class="ai-note"><i class="ai-ico">А</i><div>Цена на 6 % выше медианы по дому за последние 90 дней. Это нормально при вашем ремонте, но срок продажи вырастет примерно на месяц. <b>Оставить или пересчитать?</b></div></div>
+    </div>
+
+    <!-- 2 -->
+    <div class="np hidden" data-p="2">
+      <h2 class="step-h">Фотографии</h2>
+      <p class="step-s">Агент смотрит на снимки так же, как покупатель, и говорит, что мешает.</p>
+      <div class="photos">
+        <div><b>Кухня</b></div><div><b>Комната</b></div><div><b>Комната 2</b></div>
+        <div><b>Санузел</b></div><div><b>Вид</b></div>
+        <div class="add" onclick="photoAdd()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+            style="width:26px;height:26px">
+            <path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/>
+          </svg>
+        </div>
+      </div>
+      <div id="photoOpts" class="hidden" style="margin-top:10px">
+        <div class="row2">
+          <button class="btn ghost" onclick="photoPick('Снято на камеру')">Снять фото</button>
+          <button class="btn ghost" onclick="photoPick('Загружено из галереи')">Загрузить</button>
+        </div>
+      </div>
+      <div class="ai-note warn"><i class="ai-ico">А</i><div>На фото санузла засвет от вспышки — половина кадра не читается. Снимите при дневном свете, это заметно поднимает отклик.</div></div>
+      <div class="ai-note"><i class="ai-ico">А</i><div>Не хватает кадра прихожей и плана квартиры. Объекты с планировкой получают примерно вдвое больше целевых заявок.</div></div>
+      <button class="btn ghost" style="margin-top:12px">Переснять по подсказкам</button>
+    </div>
+
+    <!-- 3 -->
+    <div class="np hidden" data-p="3">
+      <h2 class="step-h">Видеообход</h2>
+      <p class="step-s">Одно видео снимает половину вопросов на просмотре — и отсекает тех, кому объект не подходит.</p>
+      <div class="card" style="text-align:center;padding:30px 16px;background:var(--surface);border-style:dashed">
+        <div style="font-size:30px;line-height:1">▶</div>
+        <div style="font-weight:700;margin-top:8px">Загрузить видео</div>
+        <div class="tiny" style="margin-top:3px">до 3 минут, вертикально</div>
+      </div>
+      <div class="ai-note"><i class="ai-ico">А</i><div>Пройдите от двери по всем комнатам без склеек и покажите вид из окна. Агент нарежет из этого короткие ответы на частые вопросы.</div></div>
+      <button class="btn ghost" style="margin-top:12px">Пропустить</button>
+    </div>
+
+    <!-- 4 -->
+    <div class="np hidden" data-p="4">
+      <h2 class="step-h">Кому показывать</h2>
+      <p class="step-s">Агент пропустит только тех, кто попадает под эти условия. Остальным откажет сам.</p>
+
+      <div id="saleCrit">
+        <div class="fld"><label>Форма оплаты</label>
+          <select><option>Любая</option><option selected>Наличные или ипотека</option><option>Только наличные</option></select>
+        </div>
+        <div class="fld"><label>Кто покупает</label>
+          <select><option selected>Физическое лицо</option><option>Юридическое лицо</option><option>Не важно</option></select>
+        </div>
+        <div class="fld"><label>Готовность к сделке</label>
+          <select><option selected>В течение месяца</option><option>1–3 месяца</option><option>Не важно</option></select>
+        </div>
+        <div class="fld"><label>Дополнительно</label>
+          <div id="saleChips">
+            <span class="chip b" onclick="tgChip(this)">Без встречной продажи ✓</span>
+            <span class="chip x" onclick="tgChip(this)">Освобождена юридически</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="rentCrit" class="hidden">
+        <div class="fld"><label>Кто снимает</label>
+          <select><option selected>Физическое лицо</option><option>Компания для сотрудника</option><option>Не важно</option></select>
+        </div>
+        <div class="fld"><label>Подтверждение дохода</label>
+          <select><option selected>Нужно</option><option>Не обязательно</option></select>
+        </div>
+        <div class="fld"><label>Когда заселение</label>
+          <select><option selected>В ближайшие две недели</option><option>В течение месяца</option><option>Гибко</option></select>
+        </div>
+        <div class="fld"><label>Дополнительно</label>
+          <div id="rentChips">
+            <span class="chip b" onclick="tgChip(this)">Можно с животными ✓</span>
+            <span class="chip b" onclick="tgChip(this)">Можно с детьми ✓</span>
+            <span class="chip x" onclick="tgChip(this)">Только без курения</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-note bad"><i class="ai-ico">!</i><div>Фильтры по национальности, религии и полу недоступны — это запрещено законом и объявление снимут. Агент отказывает по таким запросам и с вашей стороны, и со стороны второй.</div></div>
+    </div>
+
+    <!-- 5 -->
+    <div class="np hidden" data-p="5">
+      <h2 class="step-h">Вопросы от вас</h2>
+      <p class="step-s">Агент задаст их каждому, кто напишет. Ответы придут вам уже разобранными.</p>
+      <div class="fld"><label>Вопрос 1</label><input id="q1" placeholder="Когда планируете выйти на сделку?">
+        <div class="hint" id="q1h">Жду ответ: <b>в течение месяца</b></div></div>
+      <div class="fld"><label>Вопрос 2</label><input id="q2" placeholder="Ипотека одобрена или наличные?">
+        <div class="hint" id="q2h">Жду ответ: <b>одобрение на руках</b></div></div>
+      <div class="fld"><label>Вопрос 3</label><input value="Откуда вы родом?" style="border-color:var(--danger)" oninput="this.style.borderColor=''">
+        <div class="ai-note bad" style="margin-top:7px"><i class="ai-ico">!</i><div>Вопрос отклонён: отбор по происхождению запрещён. <b>Второе нарушение — объявление уходит на проверку.</b> Спросите то, что относится к сделке: срок аренды, число жильцов, подтверждение дохода.</div></div>
+      </div>
+      <button class="btn ghost" onclick="addQ()">Добавить вопрос</button>
+      <div class="fld" style="margin-top:16px"><label>Комментарий для агента</label>
+        <textarea id="qcomment" rows="3" placeholder="Что агенту важно знать: особенности объекта, на что обращать внимание, что говорить о торге"></textarea>
+        <div class="hint">Свободный текст. Агент учтёт это в разговоре, но пользователю не покажет.</div>
+      </div>
+      <div class="ai-note" style="margin-top:14px"><i class="ai-ico">А</i><div>С такими условиями агент пропустит примерно каждую пятую заявку. Если поток покажется слабым — ослабим срок сделки.</div></div>
+    </div>
+  </div>
+  <div style="padding:12px 18px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line)">
+    <button class="btn ghost hidden" id="testbtn" style="margin-bottom:8px" onclick="openTest()">Протестировать агента</button>
+    <button class="btn" id="nbtn" onclick="newNext()">Дальше</button>
+  </div>
+</div>
+
+<!-- ══════════ ПОИСК ══════════ -->
+<div class="screen" id="s-find">
+  <div class="hdr">
+    <div style="flex:1"><h1>Поиск</h1><div class="sub">Опишите словами — агент соберёт запрос</div></div>
+    <div class="bal"><i class="dot"></i><span class="num">2 480 ₽</span></div>
+  </div>
+  <div class="scroll" id="findScroll">
+    <!-- step A -->
+    <div id="f1">
+      <textarea rows="3" placeholder="Например: снять двушку у метро, до 90 тысяч, с котом, на год">Снять двушку рядом с метро на юго-западе, до 90 тысяч, живём вдвоём с котом, надолго</textarea>
+      <button class="btn" style="margin-top:11px" onclick="mkQuery()">Собрать запрос</button>
+      <div class="sec-t">Недавние</div>
+      <div class="card">
+        <div class="kv"><span>Двушка ЮЗАО до 90 000 ₽</span><b class="tiny" style="font-weight:600">12 найдено</b></div>
+        <div class="kv"><span>Студия у МЦК до 55 000 ₽</span><b class="tiny" style="font-weight:600">архив</b></div>
+      </div>
+    </div>
+
+    <!-- step B -->
+    <div id="f2" class="hidden">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+          <b style="font-size:15px">Запрос собран</b><button class="tiny" style="color:var(--blue);font-weight:700">Править</button>
+        </div>
+        <div><span class="chip b">Аренда</span><span class="chip b">2 комнаты</span><span class="chip b">до 90 000 ₽</span>
+        <span class="chip b">ЮЗАО</span><span class="chip b">10 мин пешком до метро</span><span class="chip b">от года</span>
+        <span class="chip b">можно с животными</span></div>
+      </div>
+
+      <div class="sec-t">О вас — агент ответит за вас</div>
+      <div class="card">
+        <div class="fld"><label>Кто будет жить</label><input value="2 взрослых, кот"></div>
+        <div class="fld"><label>Как оплачиваете</label>
+          <select><option selected>Свои средства</option><option>Компания снимает</option></select>
+        </div>
+        <div class="fld"><label>Занятость</label>
+          <select><option selected>Найм, могу подтвердить доход</option><option>Самозанятый / ИП</option><option>Не хочу указывать</option></select>
+        </div>
+        <div class="fld" style="margin-bottom:0"><label>Когда заезжаете</label>
+          <select><option selected>В ближайшие две недели</option><option>В течение месяца</option><option>Гибко</option></select>
+        </div>
+        <p class="hint">Собственник видит только эти ответы. Ваш телефон агент не передаёт, пока вы сами не согласитесь на просмотр.</p>
+      </div>
+
+      <button class="btn" style="margin-top:14px" onclick="showRes()">Показать объекты</button>
+    </div>
+
+    <!-- step C -->
+    <div id="f3" class="hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <b style="font-size:15px">12 объектов</b>
+        <button class="tiny" style="color:var(--blue);font-weight:700" onclick="go('s-find');resetFind()">Изменить запрос</button>
+      </div>
+      <div class="card" style="padding:2px 14px;margin-top:10px">
+        <label class="obj" style="cursor:pointer">
+          <div class="ph"></div>
+          <div style="flex:1;min-width:0">
+            <div class="price num">84 000 ₽ / мес</div>
+            <div class="addr">2-к · Обручева, 16</div>
+            <div class="meta">52 м² · 8 мин до Калужской</div>
+            <div style="margin-top:6px"><span class="chip g">Собственник</span><span class="chip">Можно с животными</span></div>
+          </div>
+          <input type="checkbox" class="pick" checked style="width:22px;height:22px;flex-shrink:0;margin-top:22px">
+        </label>
+        <label class="obj" style="cursor:pointer">
+          <div class="ph"></div>
+          <div style="flex:1;min-width:0">
+            <div class="price num">88 500 ₽ / мес</div>
+            <div class="addr">2-к · Новаторов, 4к2</div>
+            <div class="meta">56 м² · 6 мин до Проспекта Вернадского</div>
+            <div style="margin-top:6px"><span class="chip g">Собственник</span><span class="chip h">Залог за просмотр</span></div>
+          </div>
+          <input type="checkbox" class="pick" checked style="width:22px;height:22px;flex-shrink:0;margin-top:22px">
+        </label>
+        <label class="obj" style="cursor:pointer">
+          <div class="ph"></div>
+          <div style="flex:1;min-width:0">
+            <div class="price num">79 000 ₽ / мес</div>
+            <div class="addr">2-к · Профсоюзная, 104</div>
+            <div class="meta">48 м² · 12 мин до Беляево</div>
+            <div style="margin-top:6px"><span class="chip">Агентство</span></div>
+          </div>
+          <input type="checkbox" class="pick" style="width:22px;height:22px;flex-shrink:0;margin-top:22px">
+        </label>
+      </div>
+      <div class="ai-note" style="margin-top:12px"><i class="ai-ico">А</i><div>Обработка одного объекта — <b>9 ₽</b>: агент напишет собственнику, задаст ваши вопросы и вернётся с ответами. Залог вносится только за 24 часа до просмотра.</div></div>
+      <button class="btn" style="margin-top:12px" onclick="sendAgent()">Отправить агенту · 18 ₽</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ СДЕЛКИ ══════════ -->
+<div class="screen" id="s-deals">
+  <div class="hdr">
+    <div style="flex:1"><h1>Сделки</h1><div class="sub">Агент ведёт переписку, вы подключаетесь по делу</div></div>
+  </div>
+  <div class="scroll">
+    <div class="seg" id="dealSeg">
+      <button class="on" onclick="filt(this,'all')">Все</button>
+      <button onclick="filt(this,'find')">Поиск</button>
+      <button onclick="filt(this,'sell')">Реализация</button>
+    </div>
+    <div id="dealList"></div>
+    <div id="dealEmpty" class="empty hidden">
+      <h3>Сделок пока нет</h3>
+      <p>Здесь появятся переписки по вашим объектам и по объектам, которые вы отправили агенту в поиске.</p>
+      <button class="btn" onclick="newObject()">Разместить объект</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ЧАТ ══════════ -->
+<div class="screen" id="s-chat">
+  <div class="hdr">
+    <button class="back" onclick="go('s-deals')">‹</button>
+    <div style="flex:1"><h1 style="font-size:16px" id="chatT">Обручева, 16</h1><div class="sub" id="chatS">84 000 ₽ · собственник Олег Н.</div></div>
+    <span class="status st-hold" id="chatSt">Возможна сделка</span>
+  </div>
+  <div class="scroll" id="chatScroll" style="padding-bottom:16px">
+    <div class="msgs">
+      <div class="m sys">Агент начал работу по объекту · списано 9 ₽</div>
+      <div class="m in"><div class="who">Ваш агент</div>Написал собственнику ваши условия: двое взрослых, кот, от года, подтверждение дохода есть.<div class="t">13:04</div></div>
+      <div class="m in"><div class="who">Ваш агент</div>Собственник ответил: с животными согласен, залог месяц, торг до 82 000 при годовом договоре. Готов показать завтра в 19:00.<div class="t">14:10</div></div>
+      <div class="m out">Отлично, беру завтра в 19:00<div class="t">14:18</div></div>
+    </div>
+
+    <div class="banner hold" id="holdBanner">
+      <h4>Залог за просмотр — 3 000 ₽</h4>
+      <p>Вносится за 24 часа до встречи и защищает обе стороны от срыва. Если просмотр состоялся, но вы не сняли — залог возвращается полностью. Если не пришли без предупреждения — уходит собственнику.</p>
+      <button class="btn" onclick="payHold()" id="holdBtn">Внести залог</button>
+    </div>
+
+    <div id="afterHold" class="hidden">
+      <div class="msgs" style="margin-top:12px">
+        <div class="m sys">Залог 3 000 ₽ внесён · просмотр 2 сентября, 19:00</div>
+        <div class="m in"><div class="who">Ваш агент</div>Собственник предупреждён. Напомню за два часа и спрошу, как всё прошло, через полчаса после встречи.<div class="t">14:22</div></div>
+      </div>
+      <div class="banner">
+        <h4>Нужен нейтральный представитель?</h4>
+        <p>Наш человек присутствует на просмотре и не берёт сторону. Оплата только если сделка состоится — 4 900 ₽. Достаточно согласия одной стороны.</p>
+        <div class="row2">
+          <button class="btn sec">Не нужен</button><button class="btn">Пусть будет</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="composer">
+    <input placeholder="Написать собственнику">
+    <button>↑</button>
+  </div>
+</div>
+
+<!-- ══════════ ПРОФИЛЬ ══════════ -->
+<div class="screen" id="s-me">
+  <div class="hdr"><div style="flex:1"><h1>Профиль</h1><div class="sub">Артём · с августа 2026</div></div></div>
+  <div class="scroll">
+    <div class="agent-strip">
+      <div class="top"><i class="pulse"></i>Баланс агента</div>
+      <div style="font-size:33px;font-weight:800;letter-spacing:-.03em;margin:4px 0 2px" class="num">2 480 ₽</div>
+      <div style="font-size:13px;color:#B9C2D4">Хватит примерно на 3 недели при текущей активности</div>
+      <div class="log" style="margin-top:12px">
+        <div>Списано за август<span>1 940 ₽</span></div>
+        <div>Заявок обработано<span>212</span></div>
+        <div>Отсеяно риэлторов<span>64</span></div>
+      </div>
+    </div>
+    <button class="btn" style="margin-top:12px" onclick="go('s-topup')">Пополнить баланс</button>
+
+    <div class="sec-t">Ваши объекты</div>
+    <div class="stat3">
+      <div><b>2</b><span>размещено</span></div>
+      <div><b>1 840</b><span>просмотров</span></div>
+      <div><b>4</b><span>целевых заявки</span></div>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div class="kv"><span>Профсоюзная, 43</span><b>3 заявки</b></div>
+      <div class="kv"><span>Красносельская, 8</span><b>1 заявка</b></div>
+    </div>
+
+    <div class="sec-t">Помощь</div>
+    <div class="card" style="padding:0 14px">
+      <button class="link" onclick="svc('jur')">Вызвать юриста для договора<em>›</em></button>
+      <button class="link" onclick="svc('buh')">Бухгалтер по сделке<em>›</em></button>
+      <button class="link" onclick="svc('sup')">Поддержка в чате<em>›</em></button>
+      <button class="link" onclick="svc('tel')">Позвонить в поддержку<em style="color:var(--blue);font-size:15px;font-weight:700">8 800</em></button>
+      <button class="link" onclick="svc('jal')">Пожаловаться на участника<em>›</em></button>
+      <button class="link" onclick="svc('otz')">Оставить отзыв<em>›</em></button>
+      <button class="link" onclick="return false" style="cursor:default">Состояние базы<em id="dbState" style="font-size:13px;font-weight:700">—</em></button>
+      <button class="link" onclick="openApi()">Подключить своего агента<em id="apiDot" style="font-size:13px;font-weight:700;color:var(--navy-40)">нет</em></button>
+      <button class="link" onclick="seedDemo()">Заполнить демо-объектами<em>›</em></button>
+      <button class="link" onclick="dbExport()">Скопировать резервную копию<em>›</em></button>
+      <button class="link" onclick="dbImport()">Восстановить из копии<em>›</em></button>
+      <button class="link" style="color:var(--danger)" onclick="dbReset()">Очистить все данные<em>›</em></button>
+    </div>
+    <p class="hint" style="margin-top:14px">Жалобы разбираются в течение суток. За умышленный срыв сделки после подтверждения действует штраф по оферте.</p>
+  </div>
+</div>
+
+<!-- ══════════ ДЕЙСТВИЯ С ОБЪЕКТОМ ══════════ -->
+<div class="screen" id="s-obj">
+  <div class="hdr">
+    <button class="back" onclick="go('s-sell')">‹</button>
+    <div style="flex:1"><h1 style="font-size:17px" id="objT">Объект</h1><div class="sub" id="objS">—</div></div>
+  </div>
+  <div class="scroll">
+    <div class="card" id="objCard"></div>
+    <div class="sec-t">Действия</div>
+    <div class="card" style="padding:0 14px">
+      <button class="link" onclick="editObject()">Редактировать объявление<em>›</em></button>
+      <button class="link" onclick="openTest()">Протестировать агента<em>›</em></button>
+      <button class="link" style="color:var(--danger)" onclick="delObject()">Удалить объявление<em>›</em></button>
+    </div>
+    <p class="hint" style="margin-top:14px">Изменения агент подхватывает сразу — переписки продолжатся с новыми условиями.</p>
+  </div>
+</div>
+
+<!-- ══════════ ПОДКЛЮЧЕНИЕ АГЕНТА ══════════ -->
+<div class="screen" id="s-api">
+  <div class="hdr">
+    <button class="back" onclick="go('s-me')">‹</button>
+    <div style="flex:1"><h1 style="font-size:17px">Подключить своего агента</h1>
+      <div class="sub" id="apiState">не подключён</div></div>
+  </div>
+  <div class="scroll">
+    <div class="tbar">Песочница прототипа не пропускает запросы к модели наружу. Чтобы агент заработал по-настоящему, поднимите свой прокси на Cloudflare Worker и вставьте его адрес сюда — ключ останется у вас и в браузер не попадёт.</div>
+
+    <div class="fld"><label>Адрес воркера</label>
+      <input id="apiUrl" placeholder="https://ai-realtor-agent.ваш-домен.workers.dev" inputmode="url">
+      <div class="hint">Оставьте пустым, чтобы вернуться к прямому вызову.</div>
+    </div>
+    <div class="row2">
+      <button class="btn ghost" onclick="apiTest()">Проверить связь</button>
+      <button class="btn" onclick="apiSave()">Сохранить</button>
+    </div>
+
+    <div class="sec-t">Как поднять за 10 минут</div>
+    <div class="card">
+      <div class="kv"><span>1. Создать воркер</span><b class="tiny" style="font-weight:600">wrangler init</b></div>
+      <div class="kv"><span>2. Вставить файл worker.js</span><b class="tiny" style="font-weight:600">src/index.js</b></div>
+      <div class="kv"><span>3. Положить ключ в секреты</span><b class="tiny" style="font-weight:600">wrangler secret put</b></div>
+      <div class="kv"><span>4. Задеплоить</span><b class="tiny" style="font-weight:600">wrangler deploy</b></div>
+      <p class="hint" style="margin-top:11px">Файл воркера приложен к прототипу. Внутри — CORS, ограничение длины истории и защита ключа.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ТЕСТ АГЕНТА ══════════ -->
+<div class="screen" id="s-test">
+  <div class="hdr">
+    <button class="back" onclick="go('s-sell')">‹</button>
+    <div style="flex:1"><h1 style="font-size:17px">Проверка агента</h1>
+      <div class="sub" id="testObj">—</div></div>
+    <button class="tiny" style="color:var(--blue);font-weight:700" onclick="resetTest()">Заново</button>
+  </div>
+  <div class="scroll" id="testScroll" style="padding-bottom:16px">
+    <div class="tbar">Вы — арендатор или покупатель. Пишите агенту как реальному человеку: спрашивайте про объект, торгуйтесь, пробуйте увиливать от его вопросов. Ниже видно, что агент усвоил.</div>
+
+    <div class="tpanel">
+      <h4>Что агент понял о вас <span class="tstatus st-off" id="tSt">ждёт первого сообщения</span></h4>
+      <div id="tColl"><div class="kvr"><span>Пока ничего</span><span>—</span></div></div>
+      <div id="tMissWrap" style="border-top:1px solid var(--line);margin-top:9px;padding-top:9px">
+        <div class="kvr"><span>Ещё не выяснено</span><span class="miss" id="tMiss">—</span></div>
+      </div>
+    </div>
+
+    <div class="msgs" id="testMsgs"></div>
+  </div>
+  <div class="composer">
+    <input id="testIn" placeholder="Написать агенту" onkeydown="if(event.key==='Enter')sendTest()">
+    <button onclick="sendTest()">↑</button>
+  </div>
+</div>
+
+<!-- ══════════ ПОПОЛНЕНИЕ ══════════ -->
+<div class="screen" id="s-topup">
+  <div class="hdr">
+    <button class="back" onclick="go('s-me')">‹</button>
+    <div style="flex:1"><h1>Пополнить баланс</h1><div class="sub">Текущий: <span class="num" id="balNow">2 480 ₽</span></div></div>
+  </div>
+  <div class="scroll">
+    <div class="sec-t" style="margin-top:0">Сумма</div>
+    <div class="card" style="padding:2px 14px" id="sumList">
+      <button class="link sumOpt on" data-v="1000" onclick="pickSum(this)">1 000 ₽<em>~1 неделя</em></button>
+      <button class="link sumOpt" data-v="3000" onclick="pickSum(this)">3 000 ₽<em>~3 недели</em></button>
+      <button class="link sumOpt" data-v="10000" onclick="pickSum(this)">10 000 ₽<em>~2 месяца</em></button>
+      <button class="link sumOpt" data-v="25000" onclick="pickSum(this)">25 000 ₽<em>~5 месяцев</em></button>
+    </div>
+    <div class="fld" style="margin-top:14px"><label>Или своя сумма, ₽</label>
+      <input id="ownSum" inputmode="numeric" placeholder="Например, 5 000" oninput="ownSumIn()"></div>
+
+    <div class="sec-t">Способ оплаты</div>
+    <div class="card" style="padding:2px 14px">
+      <button class="link payOpt on" onclick="pickPay(this)">Карта · 4417<em>✓</em></button>
+      <button class="link payOpt" onclick="pickPay(this)">СБП<em></em></button>
+      <button class="link payOpt" onclick="pickPay(this)">Счёт для юрлица<em></em></button>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="kv"><span>Автопополнение при балансе ниже 500 ₽</span><b id="autoState" style="color:var(--navy-40)">выкл</b></div>
+      <button class="btn ghost" style="margin-top:11px" onclick="toggleAuto()">Включить автопополнение</button>
+      <p class="hint" style="margin-top:9px">Агент не остановится посреди переговоров из-за нулевого баланса.</p>
+    </div>
+  </div>
+  <div style="padding:12px 18px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line)">
+    <button class="btn" id="topupBtn" onclick="topup()">Пополнить на 1 000 ₽</button>
+  </div>
+</div>
+
+<!-- ══════════ УСЛУГА ══════════ -->
+<div class="screen" id="s-svc">
+  <div class="hdr">
+    <button class="back" onclick="go('s-me')">‹</button>
+    <div style="flex:1"><h1 id="svcT">Юрист</h1><div class="sub" id="svcS"></div></div>
+  </div>
+  <div class="scroll">
+    <div id="svcBody"></div>
+  </div>
+  <div style="padding:12px 18px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line)">
+    <button class="btn" id="svcBtn" onclick="svcSend()">Отправить заявку</button>
+  </div>
+</div>
+
+<!-- ══════════ TABS ══════════ -->
+<nav class="tabs">
+  <button class="tab on" data-s="s-sell" onclick="go('s-sell')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg>Реализация</button>
+  <button class="tab" data-s="s-find" onclick="go('s-find')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Поиск</button>
+  <button class="tab" data-s="s-deals" onclick="go('s-deals')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12a8 8 0 0 1-11.5 7.2L3 21l1.8-6.5A8 8 0 1 1 21 12Z"/></svg>Сделки
+    <i class="badge hidden" id="dealBadge">0</i></button>
+  <button class="tab" data-s="s-me" onclick="go('s-me')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c.8-4 3.9-6 7.5-6s6.7 2 7.5 6"/></svg>Профиль</button>
+</nav>
+
+</div>
+<script>
+var TABS={'s-sell':'s-sell','s-new':'s-sell','s-find':'s-find','s-deals':'s-deals','s-chat':'s-deals','s-me':'s-me','s-svc':'s-me','s-topup':'s-me','s-test':'s-sell','s-obj':'s-sell','s-api':'s-me'};
+function start(){
+  var sp=document.getElementById('splash');
+  sp.classList.add('gone');
+  setTimeout(function(){sp.style.display='none'},380);
+}
+window.addEventListener('DOMContentLoaded',function(){ dbLoad(); });
+function go(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.toggle('on',s.id===id)});
+  var t=TABS[id];
+  document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('on',b.dataset.s===t)});
+  var sc=document.querySelector('#'+id+' .scroll'); if(sc)sc.scrollTop=0;
+}
+
+/* --- new listing wizard --- */
+var p=1;
+var titles={1:'Об объекте',2:'Фотографии',3:'Видео',4:'Кому показывать',5:'Вопросы агента'};
+function paint(){
+  document.querySelectorAll('.np').forEach(function(n){n.classList.toggle('hidden',+n.dataset.p!==p)});
+  document.querySelectorAll('.steps i').forEach(function(i,x){i.classList.toggle('on',x<p)});
+  document.getElementById('nh').textContent=titles[p];
+  document.getElementById('nn').textContent='Шаг '+p;
+  document.getElementById('nbtn').textContent=p===5?'Опубликовать объект':'Дальше';
+  document.getElementById('testbtn').classList.toggle('hidden',p!==5);
+  document.querySelector('#s-new .scroll').scrollTop=0;
+}
+function newNext(){
+  if(p<5){p++;paint();}
+  else{publish();}
+}
+function addQ(){
+  var b=event.target, d=document.createElement('div');
+  d.className='fld';
+  d.innerHTML='<label>\u041d\u043e\u0432\u044b\u0439 \u0432\u043e\u043f\u0440\u043e\u0441</label><input placeholder="\u0427\u0442\u043e \u0441\u043f\u0440\u043e\u0441\u0438\u0442\u044c \u0443 \u043a\u0430\u043d\u0434\u0438\u0434\u0430\u0442\u0430">';
+  b.parentNode.insertBefore(d,b);
+}
+
+/* --- deals filter --- */
+function filt(btn,g){
+  btn.parentNode.querySelectorAll('button').forEach(function(b){b.classList.remove('on')});
+  btn.classList.add('on');
+  document.querySelectorAll('.grp').forEach(function(x){
+    x.classList.toggle('hidden', g!=='all' && x.dataset.g!==g);
+  });
+}
+
+/* --- chat --- */
+function openChat(t,sub,hold){
+  document.getElementById('chatT').textContent=t;
+  document.getElementById('chatS').textContent=sub;
+  var st=document.getElementById('chatSt');
+  st.textContent = hold ? '\u0412\u043e\u0437\u043c\u043e\u0436\u043d\u0430 \u0441\u0434\u0435\u043b\u043a\u0430' : '\u0410\u0433\u0435\u043d\u0442 \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442';
+  st.className = 'status ' + (hold ? 'st-hold' : 'st-live');
+  document.getElementById('holdBanner').classList.toggle('hidden', !hold);
+  document.getElementById('afterHold').classList.add('hidden');
+  go('s-chat');
+}
+
+/* --- services --- */
+var SVC={
+  jur:{t:'\u042e\u0440\u0438\u0441\u0442',s:'\u0414\u043e\u0433\u043e\u0432\u043e\u0440 \u0438 \u044d\u043b\u0435\u043a\u0442\u0440\u043e\u043d\u043d\u0430\u044f \u0441\u0434\u0435\u043b\u043a\u0430',
+    b:'<div class="card"><div class="kv"><span>\u0414\u043e\u0433\u043e\u0432\u043e\u0440 \u043d\u0430\u0439\u043c\u0430</span><b>4 900 \u20bd</b></div>'+
+      '<div class="kv"><span>\u0414\u043e\u0433\u043e\u0432\u043e\u0440 \u043a\u0443\u043f\u043b\u0438-\u043f\u0440\u043e\u0434\u0430\u0436\u0438</span><b>7 500 \u20bd</b></div>'+
+      '<div class="kv"><span>\u041f\u0440\u043e\u0432\u0435\u0440\u043a\u0430 \u0447\u0443\u0436\u043e\u0433\u043e \u0434\u043e\u0433\u043e\u0432\u043e\u0440\u0430</span><b>2 400 \u20bd</b></div></div>'+
+      '<div class="sec-t">\u041f\u043e \u043a\u0430\u043a\u043e\u0439 \u0441\u0434\u0435\u043b\u043a\u0435</div>'+
+      '<div class="card"><div class="fld"><label>\u041e\u0431\u044a\u0435\u043a\u0442</label><select><option>\u041e\u0431\u0440\u0443\u0447\u0435\u0432\u0430, 16</option><option>\u041f\u0440\u043e\u0444\u0441\u043e\u044e\u0437\u043d\u0430\u044f, 43</option></select></div>'+
+      '<div class="fld" style="margin-bottom:0"><label>\u0427\u0442\u043e \u043d\u0443\u0436\u043d\u043e</label><textarea rows="3" placeholder="\u041e\u043f\u0438\u0448\u0438\u0442\u0435 \u0437\u0430\u0434\u0430\u0447\u0443"></textarea></div></div>'+
+      '<div class="ai-note"><i class="ai-ico">\u0410</i><div>\u042e\u0440\u0438\u0441\u0442 \u043e\u0442\u0432\u0435\u0447\u0430\u0435\u0442 \u0432 \u0442\u0435\u0447\u0435\u043d\u0438\u0435 \u0447\u0430\u0441\u0430 \u0432 \u0440\u0430\u0431\u043e\u0447\u0435\u0435 \u0432\u0440\u0435\u043c\u044f. \u041e\u043f\u043b\u0430\u0442\u0430 \u043f\u043e\u0441\u043b\u0435 \u0441\u043e\u0433\u043b\u0430\u0441\u043e\u0432\u0430\u043d\u0438\u044f \u0437\u0430\u0434\u0430\u0447\u0438.</div></div>',
+    btn:'\u0412\u044b\u0437\u0432\u0430\u0442\u044c \u044e\u0440\u0438\u0441\u0442\u0430', ok:'\u0417\u0430\u044f\u0432\u043a\u0430 \u043f\u0435\u0440\u0435\u0434\u0430\u043d\u0430 \u044e\u0440\u0438\u0441\u0442\u0443'},
+  buh:{t:'\u0411\u0443\u0445\u0433\u0430\u043b\u0442\u0435\u0440',s:'\u041d\u0430\u043b\u043e\u0433\u0438 \u0441 \u0430\u0440\u0435\u043d\u0434\u044b \u0438 \u043f\u0440\u043e\u0434\u0430\u0436\u0438',
+    b:'<div class="card"><div class="kv"><span>\u0414\u0435\u043a\u043b\u0430\u0440\u0430\u0446\u0438\u044f 3-\u041d\u0414\u0424\u041b</span><b>3 500 \u20bd</b></div>'+
+      '<div class="kv"><span>\u041e\u0444\u043e\u0440\u043c\u043b\u0435\u043d\u0438\u0435 \u0441\u0430\u043c\u043e\u0437\u0430\u043d\u044f\u0442\u043e\u0441\u0442\u0438</span><b>1 200 \u20bd</b></div>'+
+      '<div class="kv"><span>\u0420\u0430\u0441\u0447\u0451\u0442 \u043d\u0430\u043b\u043e\u0433\u0430 \u0441 \u043f\u0440\u043e\u0434\u0430\u0436\u0438</span><b>2 000 \u20bd</b></div></div>'+
+      '<div class="sec-t">\u0412\u0430\u0448 \u0432\u043e\u043f\u0440\u043e\u0441</div>'+
+      '<div class="card"><textarea rows="4" placeholder="\u041e\u043f\u0438\u0448\u0438\u0442\u0435 \u0441\u0438\u0442\u0443\u0430\u0446\u0438\u044e"></textarea></div>',
+    btn:'\u0412\u044b\u0437\u0432\u0430\u0442\u044c \u0431\u0443\u0445\u0433\u0430\u043b\u0442\u0435\u0440\u0430', ok:'\u0411\u0443\u0445\u0433\u0430\u043b\u0442\u0435\u0440 \u0441\u0432\u044f\u0436\u0435\u0442\u0441\u044f \u0441 \u0432\u0430\u043c\u0438'},
+  sup:{t:'\u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430',s:'\u041e\u0442\u0432\u0435\u0447\u0430\u0435\u043c \u043a\u0440\u0443\u0433\u043b\u043e\u0441\u0443\u0442\u043e\u0447\u043d\u043e',
+    b:'<div class="card"><div class="fld"><label>\u0422\u0435\u043c\u0430</label><select><option>\u0420\u0430\u0431\u043e\u0442\u0430 \u0430\u0433\u0435\u043d\u0442\u0430</option><option>\u041e\u043f\u043b\u0430\u0442\u0430 \u0438 \u0431\u0430\u043b\u0430\u043d\u0441</option><option>\u0417\u0430\u043b\u043e\u0433 \u0437\u0430 \u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440</option><option>\u0414\u0440\u0443\u0433\u043e\u0435</option></select></div>'+
+      '<div class="fld" style="margin-bottom:0"><label>\u0421\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435</label><textarea rows="4" placeholder="\u0427\u0442\u043e \u0441\u043b\u0443\u0447\u0438\u043b\u043e\u0441\u044c"></textarea></div></div>',
+    btn:'\u041e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c', ok:'\u041e\u0431\u0440\u0430\u0449\u0435\u043d\u0438\u0435 \u043f\u0440\u0438\u043d\u044f\u0442\u043e'},
+  jal:{t:'\u0416\u0430\u043b\u043e\u0431\u0430',s:'\u0420\u0430\u0437\u0431\u0438\u0440\u0430\u0435\u043c \u0432 \u0442\u0435\u0447\u0435\u043d\u0438\u0435 \u0441\u0443\u0442\u043e\u043a',
+    b:'<div class="card"><div class="fld"><label>\u041d\u0430 \u043a\u043e\u0433\u043e</label><select><option>\u041e\u043b\u0435\u0433 \u041d. \u00b7 \u041e\u0431\u0440\u0443\u0447\u0435\u0432\u0430, 16</option><option>\u0414\u043c\u0438\u0442\u0440\u0438\u0439 \u041c. \u00b7 \u041a\u0440\u0430\u0441\u043d\u043e\u0441\u0435\u043b\u044c\u0441\u043a\u0430\u044f, 8</option></select></div>'+
+      '<div class="fld"><label>\u041f\u0440\u0438\u0447\u0438\u043d\u0430</label><select><option>\u041d\u0435 \u043f\u0440\u0438\u0448\u01d1\u043b \u043d\u0430 \u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440</option><option>\u041d\u0435\u0434\u043e\u0441\u0442\u043e\u0432\u0435\u0440\u043d\u044b\u0435 \u0434\u0430\u043d\u043d\u044b\u0435 \u043e\u0431 \u043e\u0431\u044a\u0435\u043a\u0442\u0435</option><option>\u0414\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u0438 \u043c\u0430\u043d\u0438\u043f\u0443\u043b\u044f\u0446\u0438\u0438</option><option>\u0421\u043e\u0440\u0432\u0430\u043b \u0441\u0434\u0435\u043b\u043a\u0443</option><option>\u0414\u0438\u0441\u043a\u0440\u0438\u043c\u0438\u043d\u0430\u0446\u0438\u044f</option></select></div>'+
+      '<div class="fld" style="margin-bottom:0"><label>\u0427\u0442\u043e \u043f\u0440\u043e\u0438\u0437\u043e\u0448\u043b\u043e</label><textarea rows="4" placeholder="\u041e\u043f\u0438\u0448\u0438\u0442\u0435 \u043f\u043e\u0434\u0440\u043e\u0431\u043d\u043e"></textarea></div></div>'+
+      '<div class="ai-note warn"><i class="ai-ico">\u0410</i><div>\u0410\u0433\u0435\u043d\u0442 \u043f\u0440\u0438\u043b\u043e\u0436\u0438\u0442 \u043a \u0436\u0430\u043b\u043e\u0431\u0435 \u0432\u0441\u044e \u043f\u0435\u0440\u0435\u043f\u0438\u0441\u043a\u0443 \u0438 \u0438\u0441\u0442\u043e\u0440\u0438\u044e \u0434\u043e\u0433\u043e\u0432\u043e\u0440\u0451\u043d\u043d\u043e\u0441\u0442\u0435\u0439 \u2014 \u0440\u0430\u0437\u0431\u0438\u0440\u0430\u0442\u044c\u0441\u044f \u0431\u0443\u0434\u0435\u043c \u043f\u043e \u0444\u0430\u043a\u0442\u0430\u043c.</div></div>',
+    btn:'\u041e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c \u0436\u0430\u043b\u043e\u0431\u0443', ok:'\u0416\u0430\u043b\u043e\u0431\u0430 \u043f\u0440\u0438\u043d\u044f\u0442\u0430'},
+  tel:{t:'\u0417\u0432\u043e\u043d\u043e\u043a \u0432 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0443',s:'\u041a\u0440\u0443\u0433\u043b\u043e\u0441\u0443\u0442\u043e\u0447\u043d\u043e, \u0431\u0435\u0437 \u0440\u043e\u0431\u043e\u0442\u0430',
+    b:'<div class="card" style="text-align:center;padding:26px 16px">'+
+      '<div style="font-size:13px;color:var(--navy-60);font-weight:600">\u0413\u043e\u0440\u044f\u0447\u0430\u044f \u043b\u0438\u043d\u0438\u044f</div>'+
+      '<div style="font-size:27px;font-weight:800;letter-spacing:-.02em;margin:6px 0 2px">8 800 555-04-17</div>'+
+      '<div class="tiny">\u0411\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e \u043f\u043e \u0420\u043e\u0441\u0441\u0438\u0438 \u00b7 \u0441\u0440\u0435\u0434\u043d\u0435\u0435 \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435 40 \u0441\u0435\u043a</div></div>'+
+      '<div class="sec-t">\u0421\u0440\u043e\u0447\u043d\u044b\u0435 \u0432\u043e\u043f\u0440\u043e\u0441\u044b</div>'+
+      '<div class="card"><div class="kv"><span>\u041f\u0440\u043e\u0431\u043b\u0435\u043c\u0430 \u043d\u0430 \u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440\u0435 \u043f\u0440\u044f\u043c\u043e \u0441\u0435\u0439\u0447\u0430\u0441</span><b>\u2192</b></div>'+
+      '<div class="kv"><span>\u0412\u0442\u043e\u0440\u0430\u044f \u0441\u0442\u043e\u0440\u043e\u043d\u0430 \u043d\u0435 \u043f\u0440\u0438\u0448\u043b\u0430</span><b>\u2192</b></div>'+
+      '<div class="kv"><span>\u0412\u043e\u043f\u0440\u043e\u0441 \u043f\u043e \u0437\u0430\u043b\u043e\u0433\u0443</span><b>\u2192</b></div></div>'+
+      '<div class="sec-t">\u0418\u043b\u0438 \u043f\u0443\u0441\u0442\u044c \u043f\u043e\u0437\u0432\u043e\u043d\u044f\u0442 \u0432\u0430\u043c</div>'+
+      '<div class="card"><div class="fld"><label>\u0422\u0435\u043b\u0435\u0444\u043e\u043d</label><input value="+7 926 000-00-00" inputmode="tel"></div>'+
+      '<div class="fld" style="margin-bottom:0"><label>\u041a\u043e\u0433\u0434\u0430</label><select><option>\u041f\u0440\u044f\u043c\u043e \u0441\u0435\u0439\u0447\u0430\u0441</option><option>\u0412 \u0442\u0435\u0447\u0435\u043d\u0438\u0435 \u0447\u0430\u0441\u0430</option><option>\u0421\u0435\u0433\u043e\u0434\u043d\u044f \u0432\u0435\u0447\u0435\u0440\u043e\u043c</option></select></div></div>',
+    btn:'\u0417\u0430\u043a\u0430\u0437\u0430\u0442\u044c \u0437\u0432\u043e\u043d\u043e\u043a', ok:'\u041f\u043e\u0437\u0432\u043e\u043d\u0438\u043c \u0432 \u0431\u043b\u0438\u0436\u0430\u0439\u0448\u0435\u0435 \u0432\u0440\u0435\u043c\u044f'},
+  otz:{t:'\u041e\u0442\u0437\u044b\u0432',s:'\u0427\u0442\u043e \u0443\u043b\u0443\u0447\u0448\u0438\u0442\u044c',
+    b:'<div class="card"><div class="fld"><label>\u041e\u0446\u0435\u043d\u043a\u0430 \u0440\u0430\u0431\u043e\u0442\u044b \u0430\u0433\u0435\u043d\u0442\u0430</label>'+
+      '<div><span class="chip b">\u041e\u0442\u043b\u0438\u0447\u043d\u043e</span><span class="chip x">\u041d\u043e\u0440\u043c\u0430\u043b\u044c\u043d\u043e</span><span class="chip x">\u041f\u043b\u043e\u0445\u043e</span></div></div>'+
+      '<div class="fld" style="margin-bottom:0"><label>\u041a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0439</label><textarea rows="4" placeholder="\u0427\u0442\u043e \u043f\u043e\u043d\u0440\u0430\u0432\u0438\u043b\u043e\u0441\u044c, \u0430 \u0447\u0442\u043e \u043d\u0435\u0442"></textarea></div></div>',
+    btn:'\u041e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c \u043e\u0442\u0437\u044b\u0432', ok:'\u0421\u043f\u0430\u0441\u0438\u0431\u043e \u0437\u0430 \u043e\u0442\u0437\u044b\u0432'}
+};
+var curSvc='jur';
+function svc(k){
+  curSvc=k; var d=SVC[k];
+  document.getElementById('svcT').textContent=d.t;
+  document.getElementById('svcS').textContent=d.s;
+  document.getElementById('svcBody').innerHTML=d.b;
+  document.getElementById('svcBtn').textContent=d.btn;
+  go('s-svc');
+}
+function svcSend(){ toast(SVC[curSvc].ok); go('s-me'); }
+
+/* --- deal type --- */
+var dealType='sale';
+function deal(t,btn){
+  dealType=t;
+  btn.parentNode.querySelectorAll('button').forEach(function(b){b.classList.remove('on')});
+  btn.classList.add('on');
+  var rent = t==='rent';
+  document.getElementById('priceL').textContent = rent ? '\u0421\u0442\u0430\u0432\u043a\u0430, \u20bd/\u043c\u0435\u0441' : '\u0426\u0435\u043d\u0430, \u20bd';
+  document.getElementById('rentFlds').classList.toggle('hidden', !rent);
+  document.getElementById('saleCrit').classList.toggle('hidden', rent);
+  document.getElementById('rentCrit').classList.toggle('hidden', !rent);
+  var q1=document.getElementById('q1'), q2=document.getElementById('q2'),
+      h1=document.getElementById('q1h'), h2=document.getElementById('q2h');
+  if(rent){
+    q1.placeholder='На какой срок планируете снимать?'; h1.innerHTML='Например: <b>от года</b>';
+    q2.placeholder='Кто будет проживать в квартире?';   h2.innerHTML='Например: <b>двое взрослых</b>';
+  }else{
+    q1.placeholder='Когда планируете выйти на сделку?'; h1.innerHTML='Например: <b>в течение месяца</b>';
+    q2.placeholder='Ипотека одобрена или наличные?';    h2.innerHTML='Например: <b>одобрение на руках</b>';
+  }
+  document.getElementById('priceI').placeholder = rent ? 'Ставка в месяц' : 'Цена продажи';
+  var n=document.querySelector('#s-new .np[data-p="1"] .ai-note');
+  n.className = rent ? 'ai-note' : 'ai-note';
+  n.querySelector('div').innerHTML = rent
+    ? '\u0421\u0442\u0430\u0432\u043a\u0430 \u043d\u0438\u0436\u0435 \u043c\u0435\u0434\u0438\u0430\u043d\u044b \u043f\u043e \u0440\u0430\u0439\u043e\u043d\u0443 \u043d\u0430 4 %. \u041f\u0440\u0438 \u0442\u0430\u043a\u043e\u0439 \u0446\u0435\u043d\u0435 \u043e\u0431\u044a\u0435\u043a\u0442\u044b \u0443\u0445\u043e\u0434\u044f\u0442 \u0437\u0430 \u043d\u0435\u0434\u0435\u043b\u044e, \u043d\u043e \u0437\u0430\u044f\u0432\u043e\u043a \u0431\u0443\u0434\u0435\u0442 \u043c\u043d\u043e\u0433\u043e. <b>\u0410\u0433\u0435\u043d\u0442 \u043e\u0442\u0441\u0435\u0435\u0442 \u043d\u0435\u0446\u0435\u043b\u0435\u0432\u044b\u0435 \u0441\u0430\u043c.</b>'
+    : '\u0426\u0435\u043d\u0430 \u043d\u0430 6 % \u0432\u044b\u0448\u0435 \u043c\u0435\u0434\u0438\u0430\u043d\u044b \u043f\u043e \u0434\u043e\u043c\u0443 \u0437\u0430 \u043f\u043e\u0441\u043b\u0435\u0434\u043d\u0438\u0435 90 \u0434\u043d\u0435\u0439. \u042d\u0442\u043e \u043d\u043e\u0440\u043c\u0430\u043b\u044c\u043d\u043e \u043f\u0440\u0438 \u0432\u0430\u0448\u0435\u043c \u0440\u0435\u043c\u043e\u043d\u0442\u0435, \u043d\u043e \u0441\u0440\u043e\u043a \u043f\u0440\u043e\u0434\u0430\u0436\u0438 \u0432\u044b\u0440\u0430\u0441\u0442\u0435\u0442 \u043f\u0440\u0438\u043c\u0435\u0440\u043d\u043e \u043d\u0430 \u043c\u0435\u0441\u044f\u0446. <b>\u041e\u0441\u0442\u0430\u0432\u0438\u0442\u044c \u0438\u043b\u0438 \u043f\u0435\u0440\u0435\u0441\u0447\u0438\u0442\u0430\u0442\u044c?</b>';
+}
+
+/* --- photos --- */
+function photoAdd(){
+  var o=document.getElementById('photoOpts'), t=document.querySelector('.photos .add');
+  o.classList.toggle('hidden');
+  t.classList.toggle('on', !o.classList.contains('hidden'));
+}
+function photoPick(label){
+  var grid=document.querySelector('.photos'), tile=grid.querySelector('.add');
+  var d=document.createElement('div');
+  d.innerHTML='<b>'+label+'</b>';
+  grid.insertBefore(d,tile);
+  document.getElementById('photoOpts').classList.add('hidden');
+  tile.classList.remove('on');
+  toast('\u0424\u043e\u0442\u043e \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u043e \u00b7 \u0430\u0433\u0435\u043d\u0442 \u043f\u0440\u043e\u0432\u0435\u0440\u044f\u0435\u0442 \u043a\u0430\u0434\u0440');
+}
+
+/* --- top up --- */
+var balance=2480, sum=1000, auto=false;
+function fmt(n){return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'\u00a0')+' \u20bd';}
+function pickSum(b){
+  document.querySelectorAll('.sumOpt').forEach(function(x){x.classList.remove('on')});
+  b.classList.add('on');
+  document.getElementById('ownSum').value='';
+  sum=+b.dataset.v;
+  document.getElementById('topupBtn').textContent='\u041f\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u044c \u043d\u0430 '+fmt(sum);
+}
+function ownSumIn(){
+  var v=parseInt(document.getElementById('ownSum').value.replace(/\D/g,''))||0;
+  document.querySelectorAll('.sumOpt').forEach(function(x){x.classList.remove('on')});
+  sum=v;
+  document.getElementById('topupBtn').textContent = v>0
+    ? '\u041f\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u044c \u043d\u0430 '+fmt(v)
+    : '\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0441\u0443\u043c\u043c\u0443';
+}
+function pickPay(b){
+  document.querySelectorAll('.payOpt').forEach(function(x){x.classList.remove('on');x.querySelector('em').textContent=''});
+  b.classList.add('on'); b.querySelector('em').textContent='\u2713';
+}
+function toggleAuto(){
+  auto=!auto;
+  document.getElementById('autoState').textContent = auto ? '\u0432\u043a\u043b' : '\u0432\u044b\u043a\u043b';
+  document.getElementById('autoState').style.color = auto ? 'var(--agent)' : 'var(--navy-40)';
+  event.target.textContent = auto
+    ? '\u0412\u044b\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u0430\u0432\u0442\u043e\u043f\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u0435'
+    : '\u0412\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u0430\u0432\u0442\u043e\u043f\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u0435';
+}
+function topup(){
+  if(sum<=0){toast('\u0423\u043a\u0430\u0436\u0438\u0442\u0435 \u0441\u0443\u043c\u043c\u0443');return;}
+  DB.balance+=sum; dbSave(); renderBalance();
+  toast('\u0411\u0430\u043b\u0430\u043d\u0441 \u043f\u043e\u043f\u043e\u043b\u043d\u0435\u043d \u043d\u0430 '+fmt(sum));
+  go('s-me');
+}
+
+
+
+/* ═══════════ ХРАНИЛИЩЕ ═══════════ */
+var WORKER='https://ai-realtor-agent.zhcg2b4hg4.workers.dev';
+var DB={objects:[],deals:[],balance:2480,seq:1,api:WORKER};
+var KEY='ai-realtor:v1';
+
+var dbOK=true, dbWay='none';
+
+/* Три пути сохранения по очереди: штатное хранилище артефакта,
+   затем браузерное, затем память. Каждый в своей защите — если
+   один недоступен, приложение просто идёт к следующему. */
+var BACKENDS=[
+  { name:'storage',
+    ok:  function(){ return typeof window!=='undefined' && window.storage; },
+    get: async function(k){ var r=await window.storage.get(k,false); return r&&r.value; },
+    set: async function(k,v){ await window.storage.set(k,v,false); },
+    del: async function(k){ await window.storage.delete(k,false); } },
+  { name:'browser',
+    ok:  function(){ try{ var t='__t'; window.localStorage.setItem(t,'1');
+                          window.localStorage.removeItem(t); return true; }catch(e){ return false; } },
+    get: async function(k){ return window.localStorage.getItem(k); },
+    set: async function(k,v){ window.localStorage.setItem(k,v); },
+    del: async function(k){ window.localStorage.removeItem(k); } }
+];
+var BE=null;
+
+async function dbProbe(){
+  for(var i=0;i<BACKENDS.length;i++){
+    var b=BACKENDS[i];
+    try{
+      if(!b.ok()) continue;
+      await b.set('ai-realtor-probe','1');
+      var back=await b.get('ai-realtor-probe');
+      if(String(back)==='1'){
+        try{ await b.del('ai-realtor-probe'); }catch(e){}
+        BE=b; dbOK=true; dbWay=b.name; return true;
+      }
+    }catch(e){ /* пробуем следующий */ }
+  }
+  BE=null; dbOK=false; dbWay='memory'; return false;
+}
+
+async function dbLoad(){
+  await dbProbe();
+  if(BE){
+    try{
+      var raw=await BE.get(KEY);
+      if(raw) DB=JSON.parse(raw);
+      if(!DB.api) DB.api=WORKER;
+    }catch(e){ /* ключа ещё нет — нормально при первом запуске */ }
+  }
+  renderAll();
+}
+
+async function dbSave(){
+  if(!BE){ renderDbState(); return; }
+  try{ await BE.set(KEY,JSON.stringify(DB)); dbOK=true; }
+  catch(e){ dbOK=false; }
+  renderDbState();
+}
+
+async function dbReset(){
+  DB={objects:[],deals:[],balance:2480,seq:1,api:DB.api||WORKER};
+  if(BE){ try{ await BE.del(KEY); }catch(e){} }
+  renderAll();
+  toast('\u0414\u0430\u043d\u043d\u044b\u0435 \u043e\u0447\u0438\u0449\u0435\u043d\u044b');
+}
+
+function renderDbState(){
+  var e=document.getElementById('dbState');
+  if(!e) return;
+  var t = !dbOK ? '\u0442\u043e\u043b\u044c\u043a\u043e \u0432 \u044d\u0442\u043e\u0439 \u0441\u0435\u0441\u0441\u0438\u0438'
+        : (dbWay==='storage' ? '\u0441\u043e\u0445\u0440\u0430\u043d\u044f\u0435\u0442\u0441\u044f'
+                             : '\u0441\u043e\u0445\u0440\u0430\u043d\u044f\u0435\u0442\u0441\u044f \u0432 \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0435');
+  e.textContent=t;
+  e.style.color = dbOK ? 'var(--agent)' : 'var(--hold)';
+}
+
+/* ── Демо-данные: чтобы не набивать объекты руками ── */
+function seedDemo(){
+  DB.objects=[
+    {id:DB.seq++, deal:'rent', addr:'\u041c\u043e\u0441\u043a\u0432\u0430-\u0421\u0438\u0442\u0438, Nevada Tower',
+     price:'250000', area:'120', rooms:'3', floor:'44 \u0438\u0437 62',
+     desc:'\u041f\u0430\u043d\u043e\u0440\u0430\u043c\u043d\u044b\u0435 \u043e\u043a\u043d\u0430 \u043d\u0430 \u0433\u043e\u0440\u043e\u0434, \u0434\u0438\u0437\u0430\u0439\u043d\u0435\u0440\u0441\u043a\u0438\u0439 \u0440\u0435\u043c\u043e\u043d\u0442, \u0434\u0432\u0430 \u043c\u0430\u0448\u0438\u043d\u043e\u043c\u0435\u0441\u0442\u0430.',
+     deposit:'1 \u043c\u0435\u0441\u044f\u0446', term:'\u041e\u0442 \u0433\u043e\u0434\u0430',
+     included:['\u041a\u043e\u043c\u043c\u0443\u043d\u0430\u043b\u043a\u0430','\u0418\u043d\u0442\u0435\u0440\u043d\u0435\u0442','\u041c\u0435\u0431\u0435\u043b\u044c'],
+     criteria:'\u041a\u0442\u043e \u0441\u043d\u0438\u043c\u0430\u0435\u0442: \u0424\u0438\u0437\u0438\u0447\u0435\u0441\u043a\u043e\u0435 \u043b\u0438\u0446\u043e; \u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u0435 \u0434\u043e\u0445\u043e\u0434\u0430: \u041d\u0443\u0436\u043d\u043e; \u041c\u043e\u0436\u043d\u043e \u0441 \u0436\u0438\u0432\u043e\u0442\u043d\u044b\u043c\u0438',
+     questions:['\u041d\u0430 \u043a\u0430\u043a\u043e\u0439 \u0441\u0440\u043e\u043a \u043f\u043b\u0430\u043d\u0438\u0440\u0443\u0435\u0442\u0435 \u0441\u043d\u0438\u043c\u0430\u0442\u044c?','\u041a\u0442\u043e \u0431\u0443\u0434\u0435\u0442 \u043f\u0440\u043e\u0436\u0438\u0432\u0430\u0442\u044c?'],
+     comment:'\u0422\u043e\u0440\u0433 \u0434\u043e 235 \u0442\u044b\u0441. \u0442\u043e\u043b\u044c\u043a\u043e \u043f\u0440\u0438 \u0434\u043e\u0433\u043e\u0432\u043e\u0440\u0435 \u043e\u0442 \u0434\u0432\u0443\u0445 \u043b\u0435\u0442.'},
+    {id:DB.seq++, deal:'sale', addr:'\u041c\u043e\u0441\u043a\u0432\u0430, \u041f\u0440\u043e\u0444\u0441\u043e\u044e\u0437\u043d\u0430\u044f, 43',
+     price:'18500000', area:'54', rooms:'2', floor:'7 \u0438\u0437 12',
+     desc:'\u0421\u0432\u0435\u0442\u043b\u0430\u044f \u043a\u0432\u0430\u0440\u0442\u0438\u0440\u0430, \u043e\u043a\u043d\u0430 \u0432\u043e \u0434\u0432\u043e\u0440.',
+     deposit:'', term:'', included:[],
+     criteria:'\u0424\u043e\u0440\u043c\u0430 \u043e\u043f\u043b\u0430\u0442\u044b: \u041d\u0430\u043b\u0438\u0447\u043d\u044b\u0435 \u0438\u043b\u0438 \u0438\u043f\u043e\u0442\u0435\u043a\u0430; \u0411\u0435\u0437 \u0432\u0441\u0442\u0440\u0435\u0447\u043d\u043e\u0439 \u043f\u0440\u043e\u0434\u0430\u0436\u0438',
+     questions:['\u041a\u043e\u0433\u0434\u0430 \u043f\u043b\u0430\u043d\u0438\u0440\u0443\u0435\u0442\u0435 \u0432\u044b\u0439\u0442\u0438 \u043d\u0430 \u0441\u0434\u0435\u043b\u043a\u0443?','\u0418\u043f\u043e\u0442\u0435\u043a\u0430 \u043e\u0434\u043e\u0431\u0440\u0435\u043d\u0430 \u0438\u043b\u0438 \u043d\u0430\u043b\u0438\u0447\u043d\u044b\u0435?'],
+     comment:''}
+  ];
+  dbSave(); renderAll(); go('s-sell');
+  toast('\u0414\u0432\u0430 \u0434\u0435\u043c\u043e-\u043e\u0431\u044a\u0435\u043a\u0442\u0430 \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u044b');
+}
+
+/* ── Резервная копия текстом: работает всегда ── */
+function dbExport(){
+  var txt=JSON.stringify(DB);
+  var ta=document.createElement('textarea');
+  ta.value=txt; ta.style.cssText='position:fixed;top:-9999px';
+  document.body.appendChild(ta); ta.select();
+  var done=false;
+  try{ done=document.execCommand('copy'); }catch(e){}
+  ta.remove();
+  if(navigator.clipboard){ try{ navigator.clipboard.writeText(txt); done=true; }catch(e){} }
+  toast(done ? '\u041a\u043e\u043f\u0438\u044f \u0441\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u0430 \u2014 \u0441\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u0435 \u0435\u0451 \u0432 \u0437\u0430\u043c\u0435\u0442\u043a\u0430\u0445'
+                : '\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0441\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c');
+}
+function dbImport(){
+  var txt=prompt('\u0412\u0441\u0442\u0430\u0432\u044c\u0442\u0435 \u0440\u0430\u043d\u0435\u0435 \u0441\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u0443\u044e \u043a\u043e\u043f\u0438\u044e');
+  if(!txt) return;
+  try{
+    var d=JSON.parse(txt);
+    if(!d||!Array.isArray(d.objects)) throw new Error('bad');
+    DB=d; dbSave(); renderAll(); go('s-sell');
+    toast('\u0414\u0430\u043d\u043d\u044b\u0435 \u0432\u043e\u0441\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u044b');
+  }catch(e){ toast('\u041d\u0435 \u043f\u043e\u0445\u043e\u0436\u0435 \u043d\u0430 \u043a\u043e\u043f\u0438\u044e'); }
+}
+
+/* ═══════════ РЕНДЕР ═══════════ */
+function money(n){
+  var d=String(n).replace(/\D/g,'').replace(/^0+(?=\d)/,'');
+  if(!d) return '';
+  return d.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+function fmtPrice(el){
+  var pos=el.value.length-el.selectionStart;
+  el.value=money(el.value);
+  var np=Math.max(0,el.value.length-pos);
+  try{ el.setSelectionRange(np,np); }catch(e){}
+}
+function objPrice(o){return money(o.price)+(o.deal==='rent'?' \u20bd / \u043c\u0435\u0441':' \u20bd');}
+function objLine(o){
+  return (o.rooms?o.rooms+'-\u043a · ':'')+o.addr;
+}
+
+function renderAll(){ renderObjects(); renderDeals(); renderBalance(); renderDbState(); renderApi(); }
+
+function renderObjects(){
+  var L=document.getElementById('objList'), E=document.getElementById('objEmpty'),
+      H=document.getElementById('objHdr'), A=document.getElementById('objActions');
+  var has=DB.objects.length>0;
+  L.classList.toggle('hidden',!has); H.classList.toggle('hidden',!has);
+  E.classList.toggle('hidden',has); A.classList.toggle('hidden',!has);
+  L.innerHTML=DB.objects.map(function(o){
+    return '<button class="obj" style="width:100%;text-align:left;background:none" onclick="openObject('+o.id+')">'+
+      '<div class="ph"></div><div style="flex:1;min-width:0">'+
+      '<div class="price num">'+objPrice(o)+'</div>'+
+      '<div class="addr">'+esc(objLine(o))+'</div>'+
+      '<div class="meta">'+(o.area&&o.area!=='—'?esc(o.area)+' м² · ':'')+(o.floor&&o.floor!=='—'?esc(o.floor)+' этаж · ':'')+(o.deal==='rent'?'аренда':'продажа')+'</div>'+
+      '<div style="margin-top:7px"><span class="status st-live">Агент подключён</span></div>'+
+      '</div><em style="color:var(--navy-40);font-style:normal;font-size:20px;align-self:center">›</em></button>';
+  }).join('');
+}
+
+function renderDeals(){
+  var L=document.getElementById('dealList'), E=document.getElementById('dealEmpty'),
+      S=document.getElementById('dealSeg'), B=document.getElementById('dealBadge');
+  var has=DB.deals.length>0;
+  L.classList.toggle('hidden',!has); S.classList.toggle('hidden',!has);
+  E.classList.toggle('hidden',has);
+  B.classList.toggle('hidden',!has);
+  B.textContent=DB.deals.length;
+  var groups={find:[],sell:[]};
+  DB.deals.forEach(function(d){groups[d.kind].push(d)});
+  var html='';
+  if(groups.find.length){
+    html+='<div class="grp" data-g="find"><div class="sec-t" style="margin-top:0">По вашему поиску</div>'+
+      '<div class="card" style="padding:2px 14px">'+groups.find.map(dealRow).join('')+'</div></div>';
+  }
+  if(groups.sell.length){
+    html+='<div class="grp" data-g="sell"><div class="sec-t">По вашим объектам</div>'+
+      '<div class="card" style="padding:2px 14px">'+groups.sell.map(dealRow).join('')+'</div></div>';
+  }
+  L.innerHTML=html;
+}
+function dealRow(d){
+  var cls=d.status==='Возможна сделка'?'st-hold':(d.status==='Закрыт'?'st-off':'st-live');
+  return '<button class="c" style="display:flex;gap:11px;padding:13px 0;width:100%;text-align:left;'+
+    'border-bottom:1px solid var(--line)" onclick="openChat(\''+esc(d.title)+'\',\''+esc(d.sub)+'\','+(d.hold?1:0)+')">'+
+    '<div class="av'+(d.kind==='find'?' a':'')+'">'+esc(d.ini)+'</div>'+
+    '<div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:8px">'+
+    '<b style="font-size:14.5px">'+esc(d.title)+'</b><span class="tiny">'+esc(d.time)+'</span></div>'+
+    '<div class="ls">'+esc(d.last)+'</div>'+
+    '<div style="margin-top:6px"><span class="status '+cls+'">'+esc(d.status)+'</span></div></div></button>';
+}
+
+function renderBalance(){
+  document.querySelectorAll('.bal .num').forEach(function(x){x.textContent=(money(DB.balance)||'0')+' \u20bd'});
+  var big=document.querySelector('#s-me .agent-strip div[style*="33px"]');
+  if(big) big.textContent=(money(DB.balance)||'0')+' \u20bd';
+  var bn=document.getElementById('balNow');
+  if(bn) bn.textContent=(money(DB.balance)||'0')+' \u20bd';
+}
+
+/* ═══════════ ЧИПЫ ═══════════ */
+function tgChip(el){
+  var on=el.classList.contains('b');
+  el.classList.toggle('b',!on); el.classList.toggle('x',on);
+  el.textContent=el.textContent.replace(' ✓','')+(on?'':' ✓');
+}
+function chipsOn(sel){
+  return Array.prototype.map.call(document.querySelectorAll(sel+' .chip.b'),
+    function(c){return c.textContent.replace('✓','').trim()});
+}
+
+/* ═══════════ ОБЪЕКТЫ ═══════════ */
+var editId=null;
+function newObject(){
+  editId=null;
+  document.querySelectorAll('#s-new input[type=""], #s-new input:not([type]), #s-new textarea')
+    .forEach(function(i){ if(i.id!=='qcomment' || true) i.value=''; });
+  deal('sale', document.querySelector('#s-new .seg button'));
+  p=1; paint(); go('s-new');
+}
+
+function collectForm(){
+  var g=function(sel){var e=document.querySelector(sel);return e?String(e.value||'').trim():'';};
+  var qs=[];
+  document.querySelectorAll('#s-new .np[data-p="5"] input').forEach(function(i){
+    var v=i.value.trim() || (i.id==='q1'||i.id==='q2' ? i.placeholder : '');
+    if(v && !/родом/i.test(v)) qs.push(v);
+  });
+  var crit=[];
+  document.querySelectorAll('#s-new .np[data-p="4"] '+(dealType==='rent'?'#rentCrit':'#saleCrit')+' select')
+    .forEach(function(sel){
+      crit.push(sel.closest('.fld').querySelector('label').textContent+': '+sel.options[sel.selectedIndex].text);
+    });
+  crit=crit.concat(chipsOn(dealType==='rent'?'#rentChips':'#saleChips'));
+  return {
+    id: editId || DB.seq++,
+    deal: dealType,
+    addr: g('#s-new .np[data-p="1"] input') || 'Адрес не указан',
+    price: g('#priceI').replace(/\s/g,'') || '0',
+    area: g('#areaI') || '—',
+    rooms: g('#roomsI') || '',
+    floor: g('#floorI') || '—',
+    desc: g('#s-new .np[data-p="1"] textarea'),
+    deposit: dealType==='rent' ? g('#depI') : '',
+    term: dealType==='rent' ? g('#termI') : '',
+    included: dealType==='rent' ? chipsOn('#incChips') : [],
+    criteria: crit.join('; '),
+    questions: qs,
+    comment: (document.getElementById('qcomment')||{}).value || ''
+  };
+}
+
+function publish(){
+  var addr=document.querySelector('#s-new .np[data-p="1"] input').value.trim();
+  var price=document.getElementById('priceI').value.replace(/\D/g,'');
+  if(!addr){ p=1; paint(); toast('\u0423\u043a\u0430\u0436\u0438\u0442\u0435 \u0430\u0434\u0440\u0435\u0441'); return; }
+  if(!price){ p=1; paint(); toast('\u0423\u043a\u0430\u0436\u0438\u0442\u0435 \u0446\u0435\u043d\u0443'); return; }
+  var o=collectForm();
+  var i=DB.objects.findIndex(function(x){return x.id===o.id});
+  if(i>=0) DB.objects[i]=o; else DB.objects.unshift(o);
+  dbSave(); renderAll();
+  editId=null; p=1; paint(); go('s-sell');
+  toast(i>=0?'Объявление обновлено':'Объект опубликован. Агент начал работу.');
+}
+
+var curObj=null;
+function openObject(id){
+  curObj=DB.objects.find(function(o){return o.id===id});
+  if(!curObj) return;
+  document.getElementById('objT').textContent=objPrice(curObj);
+  document.getElementById('objS').textContent=objLine(curObj);
+  var rows=[['Тип сделки',curObj.deal==='rent'?'аренда':'продажа'],
+    ['Площадь',curObj.area+' м²'],['Комнат',curObj.rooms],['Этаж',curObj.floor]];
+  if(curObj.deal==='rent'){
+    rows.push(['Залог',curObj.deposit||'—']);
+    rows.push(['Срок',curObj.term||'—']);
+    rows.push(['Включено',curObj.included.join(', ')||'—']);
+  }
+  rows.push(['Условия',curObj.criteria||'—']);
+  rows.push(['Вопросов агента',String(curObj.questions.length)]);
+  document.getElementById('objCard').innerHTML=rows.map(function(r){
+    return '<div class="kv"><span>'+esc(r[0])+'</span><b style="max-width:60%;text-align:right;font-weight:600">'+esc(r[1])+'</b></div>';
+  }).join('');
+  go('s-obj');
+}
+
+function editObject(){
+  if(!curObj) return;
+  editId=curObj.id;
+  var o=curObj;
+  deal(o.deal, document.querySelector('#s-new .seg button'+(o.deal==='rent'?':last-child':':first-child')));
+  document.querySelector('#s-new .np[data-p="1"] input').value=o.addr;
+  document.getElementById('priceI').value=money(o.price);
+  document.getElementById('areaI').value=o.area==='—'?'':o.area;
+  document.getElementById('roomsI').value=o.rooms;
+  document.getElementById('floorI').value=o.floor;
+  document.querySelector('#s-new .np[data-p="1"] textarea').value=o.desc;
+  var qi=document.querySelectorAll('#s-new .np[data-p="5"] input');
+  o.questions.forEach(function(q,i){ if(qi[i]) qi[i].value=q; });
+  if(document.getElementById('qcomment')) document.getElementById('qcomment').value=o.comment||'';
+  p=1; paint(); go('s-new');
+}
+
+function delObject(){
+  if(!curObj) return;
+  DB.objects=DB.objects.filter(function(o){return o.id!==curObj.id});
+  DB.deals=DB.deals.filter(function(d){return d.objId!==curObj.id});
+  curObj=null; dbSave(); renderAll(); go('s-sell'); toast('Объявление удалено');
+}
+
+/* ═══════════ ПОИСК → СДЕЛКИ ═══════════ */
+function sendAgent(){
+  var picked=document.querySelectorAll('#f3 .pick:checked');
+  if(!picked.length){ toast('Выберите хотя бы один объект'); return; }
+  var names=[['Обручева, 16','84 000 ₽ · собственник Олег Н.','ОН'],
+             ['Новаторов, 4к2','88 500 ₽ · собственник Марина В.','МВ'],
+             ['Профсоюзная, 104','79 000 ₽ · агентство','АГ']];
+  Array.prototype.forEach.call(picked,function(chk,i){
+    var idx=Array.prototype.indexOf.call(document.querySelectorAll('#f3 .pick'),chk);
+    var n=names[idx]||names[0];
+    if(DB.deals.some(function(d){return d.title===n[0]})) return;
+    DB.deals.unshift({id:DB.seq++,objId:null,kind:'find',title:n[0],sub:n[1],ini:n[2],
+      last:'Агент: написал собственнику ваши условия, жду ответ.',
+      status:'Агент работает',time:'сейчас',hold:i===0});
+  });
+  DB.balance=Math.max(0,DB.balance-9*picked.length);
+  dbSave(); renderAll(); go('s-deals');
+  toast('Агент начал работу · списано '+(9*picked.length)+' ₽');
+}
+
+/* ═══════════ ТЕСТ РЕАЛЬНОГО АГЕНТА ═══════════ */
+
+function openApi(){
+  document.getElementById('apiUrl').value=DB.api||WORKER;
+  renderApi(); go('s-api');
+}
+function renderApi(){
+  var has=!!DB.api;
+  var st=document.getElementById('apiState');
+  if(st) st.textContent = has ? 'подключён' : 'не подключён';
+  var d=document.getElementById('apiDot');
+  if(d){ d.textContent = has ? 'да' : 'нет';
+         d.style.color = has ? 'var(--agent)' : 'var(--navy-40)'; }
+}
+function apiSave(){
+  var v=document.getElementById('apiUrl').value.trim();
+  if(v && !/^https:\/\//.test(v)){ toast('\u0410\u0434\u0440\u0435\u0441 \u0434\u043e\u043b\u0436\u0435\u043d \u043d\u0430\u0447\u0438\u043d\u0430\u0442\u044c\u0441\u044f \u0441 https://'); return; }
+  DB.api=v; dbSave(); renderApi();
+  toast(v?'\u0410\u0433\u0435\u043d\u0442 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0451\u043d':'\u041e\u0442\u043a\u043b\u044e\u0447\u0435\u043d\u043e');
+}
+async function apiTest(){
+  var v=document.getElementById('apiUrl').value.trim();
+  if(!v){ toast('\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0430\u0434\u0440\u0435\u0441'); return; }
+  toast('\u041f\u0440\u043e\u0432\u0435\u0440\u044f\u044e\u2026');
+  try{
+    var r=await fetch(v,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({system:'Ответь одним словом: работает',
+        messages:[{role:'user',content:'проверка связи'}]})});
+    var d=await r.json();
+    if(!r.ok) throw new Error(d.error||('HTTP '+r.status));
+    toast('\u0421\u0432\u044f\u0437\u044c \u0435\u0441\u0442\u044c: '+String(d.text||'').slice(0,40));
+  }catch(e){ toast('\u041d\u0435 \u043e\u0442\u0432\u0435\u0447\u0430\u0435\u0442: '+String(e.message).slice(0,60)); }
+}
+
+async function callModel(body){
+  var url = DB.api || 'https://api.anthropic.com/v1/messages';
+  var r=await fetch(url,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  if(!r.ok){
+    var txt='';
+    try{ var ej=await r.json(); txt=(ej.error&&ej.error.message)||JSON.stringify(ej); }
+    catch(e){ try{ txt=await r.text(); }catch(e2){ txt='нет тела ответа'; } }
+    throw new Error('HTTP '+r.status+': '+String(txt).slice(0,240));
+  }
+  var data=await r.json();
+  if(data.error) throw new Error(data.error.message||JSON.stringify(data.error));
+  if(typeof data.text==='string') return data.text;
+  return (data.content||[]).filter(function(b){return b.type==='text'})
+    .map(function(b){return b.text}).join('\n');
+}
+
+function parseAgent(raw){
+  raw=String(raw||'').replace(/```json|```/g,'').trim();
+  try{ return JSON.parse(raw); }
+  catch(e){
+    var a=raw.indexOf('{'), b=raw.lastIndexOf('}');
+    if(a>=0&&b>a){ try{ return JSON.parse(raw.slice(a,b+1)); }catch(e2){} }
+    return {reply:raw||'\u041f\u0443\u0441\u0442\u043e\u0439 \u043e\u0442\u0432\u0435\u0442.',collected:{},missing:[],status:'\u0443\u0442\u043e\u0447\u043d\u044f\u044e',used:[]};
+  }
+}
+
+async function askAgent(){
+  var sys=sysPrompt(tObj);
+  var errs=[];
+  /* попытка 1 — системный промпт отдельным полем */
+  try{
+    return parseAgent(await callModel({
+      model:'claude-sonnet-4-6', max_tokens:1000, system:sys, messages:tHist
+    }));
+  }catch(e1){ errs.push('1) '+e1.message); if(DB.api) throw new Error(e1.message); }
+  /* попытка 2 — системный промпт первым сообщением */
+  try{
+    var merged=[{role:'user',content:sys+'\n\n---\n\n'+tHist[0].content}].concat(tHist.slice(1));
+    return parseAgent(await callModel({
+      model:'claude-sonnet-4-6', max_tokens:1000, messages:merged
+    }));
+  }catch(e2){ errs.push('2) '+e2.message); }
+  throw new Error(errs.join(' | '));
+}
+
+var tHist=[], tBusy=false, tObj=null;
+
+function collectObject(){
+  var g=function(sel){var e=document.querySelector(sel);return e?(e.value||e.textContent||'').trim():'';};
+  var rent = dealType==='rent';
+  var qs=[];
+  document.querySelectorAll('#s-new .np[data-p="5"] input').forEach(function(i){
+    if(i.value.trim() && !/родом/i.test(i.value)) qs.push(i.value.trim());
+  });
+  if(!qs.length) qs=['Когда планируете выйти на сделку?','Ипотека одобрена или наличные?'];
+  var crit=[];
+  document.querySelectorAll('#s-new .np[data-p="4"] select').forEach(function(sel){
+    var lbl=sel.closest('.fld').querySelector('label').textContent;
+    crit.push(lbl+': '+sel.options[sel.selectedIndex].text);
+  });
+  document.querySelectorAll('#s-new .np[data-p="4"] .chip.b').forEach(function(c){
+    crit.push(c.textContent.replace('✓','').trim());
+  });
+  return {
+    deal: rent?'аренда':'продажа',
+    address: g('#s-new .np[data-p="1"] input') || 'Москва, Профсоюзная, 43',
+    price: g('#priceI') + (rent?' ₽/мес':' ₽'),
+    area: '54 м²', rooms:'2', floor:'7 из 12',
+    desc: g('#s-new .np[data-p="1"] textarea'),
+    rent_extra: rent ? 'Залог 1 месяц. Срок от года. Коммуналка включена в ставку.' : '',
+    criteria: crit.join('; '),
+    questions: qs,
+    comment: (document.getElementById('qcomment')||{}).value || ''
+  };
+}
+
+function fromSaved(o){
+  return {deal:o.deal==='rent'?'аренда':'продажа', address:o.addr,
+    price:money(o.price)+(o.deal==='rent'?' ₽/мес':' ₽'),
+    area:o.area+' м²', rooms:o.rooms, floor:o.floor, desc:o.desc,
+    rent_extra:o.deal==='rent'?('Залог: '+o.deposit+'. Срок: '+o.term+'. Включено в ставку: '+(o.included.join(', ')||'ничего')+'.'):'',
+    criteria:o.criteria, questions:o.questions.length?o.questions:['Когда планируете выйти на сделку?'],
+    comment:o.comment};
+}
+
+function sysPrompt(o){
+  return 'Ты — AI-агент по недвижимости, нанятый СОБСТВЕННИКОМ. Ты ведёшь переписку с потенциальным ' +
+  (o.deal==='аренда'?'арендатором':'покупателем') + ' вместо собственника. Отвечай по-русски, коротко и по-деловому, как живой человек в мессенджере: 1-3 предложения, без списков и без канцелярита.\n\n' +
+  '=== ДАННЫЕ ОБЪЕКТА (единственный источник правды) ===\n' +
+  'Тип сделки: '+o.deal+'\nАдрес: '+o.address+'\nЦена: '+o.price+'\nПлощадь: '+o.area+
+  '\nКомнат: '+o.rooms+'\nЭтаж: '+o.floor+'\nОписание: '+(o.desc||'нет')+
+  (o.rent_extra?'\nУсловия аренды: '+o.rent_extra:'')+'\n\n' +
+  '=== УСЛОВИЯ СОБСТВЕННИКА ===\n'+(o.criteria||'не заданы')+'\n\n' +
+  '=== ВОПРОСЫ, КОТОРЫЕ ТЫ ОБЯЗАН ЗАДАТЬ ===\n'+o.questions.map(function(q,i){return (i+1)+'. '+q}).join('\n')+'\n\n' +
+  (o.comment?'=== ЗАМЕТКА СОБСТВЕННИКА (не показывать собеседнику) ===\n'+o.comment+'\n\n':'') +
+  '=== ПРАВИЛА ===\n' +
+  '1. НИКОГДА не выдумывай факты об объекте. Если данных нет — скажи прямо, что уточнишь у собственника.\n' +
+  '2. Задавай вопросы собственника по одному, вплетая их в разговор, а не анкетой.\n' +
+  '3. Если собеседник уходит от ответа — вежливо вернись к вопросу позже.\n' +
+  '4. Если собеседник просит отбор по национальности, религии, полу или расе — откажи и объясни, что это запрещено.\n' +
+  '5. Не передавай контакты собственника до внесения залога за просмотр (3000 ₽ за 24 часа до встречи).\n' +
+  '6. Про торг: обсуждай только если собеседник поднял тему, окончательное решение за собственником.\n\n' +
+  '=== ФОРМАТ ОТВЕТА ===\nВерни ТОЛЬКО валидный JSON без markdown и без пояснений:\n' +
+  '{"reply":"твой ответ собеседнику","collected":{"поле":"значение"},"missing":["что ещё не выяснено"],' +
+  '"status":"уточняю|подходит|не подходит","used":["какие данные объекта ты использовал в этом ответе"]}\n' +
+  'В collected клади только то, что собеседник САМ сообщил. В missing — вопросы собственника, на которые ещё нет ответа.';
+}
+
+function openTest(){
+  tObj = curObj ? fromSaved(curObj) : collectObject();
+  document.getElementById('testObj').textContent=tObj.address+' · '+tObj.price;
+  if(!tHist.length) resetTest(true);
+  go('s-test');
+}
+
+function resetTest(silent){
+  tHist=[]; tObj = curObj ? fromSaved(curObj) : collectObject();
+  document.getElementById('testMsgs').innerHTML='';
+  document.getElementById('tColl').innerHTML='<div class="kvr"><span>Пока ничего</span><span>—</span></div>';
+  document.getElementById('tMiss').textContent=tObj.questions.join(' · ');
+  setStatus('ждёт первого сообщения','st-off');
+  addMsg('in','Здравствуйте! Я агент собственника по объекту '+tObj.address+
+    '. Готов ответить на вопросы и рассказать про условия. Что вас интересует?','Агент');
+  if(!silent) toast('Диалог сброшен');
+}
+
+function setStatus(t,cls){
+  var e=document.getElementById('tSt'); e.textContent=t; e.className='tstatus '+cls;
+}
+
+function addMsg(kind,text,who){
+  var w=document.getElementById('testMsgs');
+  var d=document.createElement('div');
+  d.className='m '+kind;
+  d.innerHTML=(who?'<div class="who">'+who+'</div>':'')+esc(text);
+  w.appendChild(d);
+  var sc=document.getElementById('testScroll');
+  setTimeout(function(){sc.scrollTop=sc.scrollHeight},40);
+  return d;
+}
+function esc(t){var d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+
+async function sendTest(){
+  if(tBusy) return;
+  var inp=document.getElementById('testIn');
+  var txt=inp.value.trim();
+  if(!txt) return;
+  inp.value='';
+  addMsg('out',txt);
+  tHist.push({role:'user',content:txt});
+  tBusy=true;
+
+  var t=document.createElement('div');
+  t.className='m in'; t.innerHTML='<div class="thinking"><i></i><i></i><i></i></div>';
+  document.getElementById('testMsgs').appendChild(t);
+  var sc=document.getElementById('testScroll'); sc.scrollTop=sc.scrollHeight;
+
+  try{
+    var j=await askAgent();
+    t.remove();
+    addMsg('in',j.reply,'\u0410\u0433\u0435\u043d\u0442');
+    tHist.push({role:'assistant',content:j.reply});
+    renderPanel(j);
+  }catch(err){
+    t.remove();
+    var m=String(err&&err.message||err);
+    addMsg('sys','Сбой запроса: '+m);
+    var rt=document.createElement('button');
+    rt.className='btn ghost'; rt.style.marginTop='8px'; rt.textContent='Повторить';
+    rt.onclick=function(){ rt.remove(); tHist.pop(); document.getElementById('testIn').value=txt; sendTest(); };
+    document.getElementById('testMsgs').appendChild(rt);
+    console.error('agent error',err);
+  }
+  tBusy=false;
+}
+
+function renderPanel(j){
+  var c=document.getElementById('tColl');
+  var keys=Object.keys(j.collected||{});
+  c.innerHTML = keys.length
+    ? keys.map(function(k){return '<div class="kvr"><span>'+esc(k)+'</span><span>'+esc(String(j.collected[k]))+'</span></div>'}).join('')
+    : '<div class="kvr"><span>Пока ничего</span><span>—</span></div>';
+  if(j.used && j.used.length){
+    c.innerHTML += '<div class="kvr" style="border-top:1px solid var(--line);margin-top:7px;padding-top:7px">'+
+      '<span>Данные объекта в ответе</span><span style="color:var(--agent)">'+esc(j.used.join(', '))+'</span></div>';
+  }
+  document.getElementById('tMiss').textContent=(j.missing&&j.missing.length)?j.missing.join(' · '):'всё выяснено';
+  var st=j.status||'уточняю';
+  setStatus(st, st==='подходит'?'st-live':(st==='не подходит'?'st-off':'st-deal'));
+}
+
+/* --- toast --- */
+function toast(msg){
+  var t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:90px;z-index:200;'+
+    'background:#111C33;color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;font-weight:600;'+
+    'max-width:88%;text-align:center;box-shadow:0 8px 24px rgba(17,28,51,.3)';
+  document.body.appendChild(t);
+  setTimeout(function(){t.style.transition='opacity .3s';t.style.opacity='0';
+    setTimeout(function(){t.remove()},320)},2200);
+}
+function newBack(){ if(p>1){p--;paint();} else go('s-sell'); }
+
+/* --- search flow --- */
+function mkQuery(){document.getElementById('f1').classList.add('hidden');document.getElementById('f2').classList.remove('hidden');document.getElementById('findScroll').scrollTop=0;}
+function showRes(){document.getElementById('f2').classList.add('hidden');document.getElementById('f3').classList.remove('hidden');document.getElementById('findScroll').scrollTop=0;}
+function resetFind(){document.getElementById('f3').classList.add('hidden');document.getElementById('f2').classList.add('hidden');document.getElementById('f1').classList.remove('hidden');}
+
+/* --- deposit --- */
+function payHold(){
+  document.getElementById('holdBtn').closest('.banner').classList.add('hidden');
+  document.getElementById('afterHold').classList.remove('hidden');
+  var s=document.getElementById('chatScroll');
+  setTimeout(function(){s.scrollTop=s.scrollHeight},60);
+}
+</script>
+</body>
+</html>
