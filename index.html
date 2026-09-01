@@ -283,7 +283,8 @@ textarea{resize:none;line-height:1.5}
       <h3>Объявлений пока нет</h3>
       <p>Разместите объект — агент начнёт принимать заявки и отсеивать риэлторов сам.</p>
       <button class="btn" onclick="newObject()">Создать объявление</button>
-      <button class="btn ghost" style="margin-top:8px" onclick="seedDemo()">Заполнить демо-объектами</button>
+      <button class="btn sec" style="margin-top:8px" onclick="go('s-find')">Или подобрать недвижимость</button>
+      <button class="btn ghost" style="margin-top:8px" onclick="seedDemo()">Заполнить демо-данными</button>
     </div>
 
     <div id="objActions">
@@ -481,18 +482,70 @@ textarea{resize:none;line-height:1.5}
     <div id="f2" class="hidden">
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
-          <b style="font-size:15px">Запрос собран</b><button class="tiny" style="color:var(--blue);font-weight:700">Править</button>
+          <b style="font-size:15px">Что ищем</b>
+          <button class="tiny" id="qEditBtn" style="color:var(--blue);font-weight:700" onclick="qEdit()">Править</button>
         </div>
-        <div><span class="chip b">Аренда</span><span class="chip b">2 комнаты</span><span class="chip b">до 90 000 ₽</span>
-        <span class="chip b">ЮЗАО</span><span class="chip b">10 мин пешком до метро</span><span class="chip b">от года</span>
-        <span class="chip b">можно с животными</span></div>
+        <div id="qChips"></div>
+        <div id="qAdd" class="hidden" style="margin-top:10px">
+          <div class="row2">
+            <input id="qNew" placeholder="Добавить пожелание" onkeydown="if(event.key==='Enter')qAddChip()">
+            <button class="btn sec" style="flex:0 0 96px;padding:11px" onclick="qAddChip()">Добавить</button>
+          </div>
+          <p class="hint">Нажмите на пожелание, чтобы убрать его.</p>
+        </div>
+      </div>
+
+      <div class="sec-t">Параметры</div>
+      <div class="card">
+        <div class="fld"><label>Сделка</label>
+          <div class="seg" style="margin-bottom:0">
+            <button class="on" onclick="bDeal('rent',this)">Аренда</button>
+            <button onclick="bDeal('sale',this)">Покупка</button>
+          </div>
+        </div>
+        <div class="fld"><label id="bPriceL">Ставка, ₽ в месяц</label>
+          <div class="row2">
+            <input id="bPriceMin" inputmode="numeric" placeholder="от" oninput="fmtPrice(this)">
+            <input id="bPriceMax" inputmode="numeric" placeholder="до" oninput="fmtPrice(this)">
+          </div>
+        </div>
+        <div class="fld"><label>Площадь, м²</label>
+          <div class="row2">
+            <input id="bAreaMin" inputmode="numeric" placeholder="от">
+            <input id="bAreaMax" inputmode="numeric" placeholder="до">
+          </div>
+        </div>
+        <div class="fld"><label>Комнат</label>
+          <div id="bRooms">
+            <span class="chip x" onclick="tgChip(this)">Студия</span>
+            <span class="chip b" onclick="tgChip(this)">1 ✓</span>
+            <span class="chip b" onclick="tgChip(this)">2 ✓</span>
+            <span class="chip x" onclick="tgChip(this)">3</span>
+            <span class="chip x" onclick="tgChip(this)">4+</span>
+          </div>
+        </div>
+        <div class="fld"><label>Район или метро</label>
+          <input id="bArea" placeholder="Например, ЮЗАО или Калужская"></div>
+        <div class="fld" style="margin-bottom:0"><label>До метро пешком</label>
+          <select id="bWalk"><option>Не важно</option><option selected>До 10 минут</option><option>До 15 минут</option></select>
+        </div>
+      </div>
+
+      <div class="sec-t">Вопросы собственнику</div>
+      <div class="card">
+        <p class="hint" style="margin:0 0 11px">Агент задаст их сам и вернётся с ответами. Вам не придётся ничего спрашивать.</p>
+        <div id="bQs">
+          <div class="fld"><input placeholder="Например: есть ли счётчики и кто платит за воду?"></div>
+          <div class="fld"><input placeholder="Например: что с шумоизоляцией и соседями?"></div>
+        </div>
+        <button class="btn ghost" onclick="bAddQ()">Добавить вопрос</button>
       </div>
 
       <div class="sec-t">О вас — агент ответит за вас</div>
-      <div class="card">
+      <div class="card" id="bAnketa">
         <div class="fld"><label>Кто будет жить</label><input value="2 взрослых, кот"></div>
         <div class="fld"><label>Как оплачиваете</label>
-          <select><option selected>Свои средства</option><option>Компания снимает</option></select>
+          <select><option selected>Свои средства</option><option>Ипотека</option><option>Компания снимает</option></select>
         </div>
         <div class="fld"><label>Занятость</label>
           <select><option selected>Найм, могу подтвердить доход</option><option>Самозанятый / ИП</option><option>Не хочу указывать</option></select>
@@ -500,7 +553,7 @@ textarea{resize:none;line-height:1.5}
         <div class="fld" style="margin-bottom:0"><label>Когда заезжаете</label>
           <select><option selected>В ближайшие две недели</option><option>В течение месяца</option><option>Гибко</option></select>
         </div>
-        <p class="hint">Собственник видит только эти ответы. Ваш телефон агент не передаёт, пока вы сами не согласитесь на просмотр.</p>
+        <p class="hint">Собственник видит только эти ответы. Телефон агент не передаёт, пока вы сами не согласитесь на просмотр.</p>
       </div>
 
       <button class="btn" style="margin-top:14px" onclick="showRes()">Показать объекты</button>
@@ -509,43 +562,19 @@ textarea{resize:none;line-height:1.5}
     <!-- step C -->
     <div id="f3" class="hidden">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <b style="font-size:15px">12 объектов</b>
-        <button class="tiny" style="color:var(--blue);font-weight:700" onclick="go('s-find');resetFind()">Изменить запрос</button>
+        <b style="font-size:15px" id="resCount">Объекты</b>
+        <button class="tiny" style="color:var(--blue);font-weight:700" onclick="backToQuery()">Изменить запрос</button>
       </div>
-      <div class="card" style="padding:2px 14px;margin-top:10px">
-        <label class="obj" style="cursor:pointer">
-          <div class="ph"></div>
-          <div style="flex:1;min-width:0">
-            <div class="price num">84 000 ₽ / мес</div>
-            <div class="addr">2-к · Обручева, 16</div>
-            <div class="meta">52 м² · 8 мин до Калужской</div>
-            <div style="margin-top:6px"><span class="chip g">Собственник</span><span class="chip">Можно с животными</span></div>
-          </div>
-          <input type="checkbox" class="pick" checked style="width:22px;height:22px;flex-shrink:0;margin-top:22px">
-        </label>
-        <label class="obj" style="cursor:pointer">
-          <div class="ph"></div>
-          <div style="flex:1;min-width:0">
-            <div class="price num">88 500 ₽ / мес</div>
-            <div class="addr">2-к · Новаторов, 4к2</div>
-            <div class="meta">56 м² · 6 мин до Проспекта Вернадского</div>
-            <div style="margin-top:6px"><span class="chip g">Собственник</span><span class="chip h">Залог за просмотр</span></div>
-          </div>
-          <input type="checkbox" class="pick" checked style="width:22px;height:22px;flex-shrink:0;margin-top:22px">
-        </label>
-        <label class="obj" style="cursor:pointer">
-          <div class="ph"></div>
-          <div style="flex:1;min-width:0">
-            <div class="price num">79 000 ₽ / мес</div>
-            <div class="addr">2-к · Профсоюзная, 104</div>
-            <div class="meta">48 м² · 12 мин до Беляево</div>
-            <div style="margin-top:6px"><span class="chip">Агентство</span></div>
-          </div>
-          <input type="checkbox" class="pick" style="width:22px;height:22px;flex-shrink:0;margin-top:22px">
-        </label>
+      <div class="card" style="padding:2px 14px;margin-top:10px" id="resList"></div>
+      <div id="resEmpty" class="empty hidden">
+        <h3>Под запрос ничего нет</h3>
+        <p>Попробуйте расширить диапазон цены или площади.</p>
+        <button class="btn ghost" onclick="backToQuery()">Изменить запрос</button>
       </div>
-      <div class="ai-note" style="margin-top:12px"><i class="ai-ico">А</i><div>Обработка одного объекта — <b>9 ₽</b>: агент напишет собственнику, задаст ваши вопросы и вернётся с ответами. Залог вносится только за 24 часа до просмотра.</div></div>
-      <button class="btn" style="margin-top:12px" onclick="sendAgent()">Отправить агенту · 18 ₽</button>
+      <div id="resFoot">
+        <div class="ai-note" style="margin-top:12px"><i class="ai-ico">А</i><div id="resNote"></div></div>
+        <button class="btn" style="margin-top:12px" id="resBtn" onclick="sendAgent()">Отправить агенту</button>
+      </div>
     </div>
   </div>
 </div>
@@ -564,8 +593,10 @@ textarea{resize:none;line-height:1.5}
     <div id="dealList"></div>
     <div id="dealEmpty" class="empty hidden">
       <h3>Сделок пока нет</h3>
-      <p>Здесь появятся переписки по вашим объектам и по объектам, которые вы отправили агенту в поиске.</p>
+      <p>Переписки появятся с двух сторон: по вашим объектам и по тем, что вы отправите агенту в поиске.</p>
       <button class="btn" onclick="newObject()">Разместить объект</button>
+      <button class="btn sec" style="margin-top:8px" onclick="go('s-find')">Подобрать недвижимость</button>
+      <button class="btn ghost" style="margin-top:8px" onclick="seedDemo()">Заполнить демо-данными</button>
     </div>
   </div>
 </div>
@@ -647,6 +678,7 @@ textarea{resize:none;line-height:1.5}
       <button class="link" onclick="svc('jal')">Пожаловаться на участника<em>›</em></button>
       <button class="link" onclick="svc('otz')">Оставить отзыв<em>›</em></button>
       <button class="link" onclick="return false" style="cursor:default">Состояние базы<em id="dbState" style="font-size:13px;font-weight:700">—</em></button>
+      <button class="link" onclick="showErr()">Последняя ошибка<em id="errState" style="font-size:13px;font-weight:700;color:var(--navy-40)">нет</em></button>
       <button class="link" onclick="openApi()">Подключить своего агента<em id="apiDot" style="font-size:13px;font-weight:700;color:var(--navy-40)">нет</em></button>
       <button class="link" onclick="seedDemo()">Заполнить демо-объектами<em>›</em></button>
       <button class="link" onclick="dbExport()">Скопировать резервную копию<em>›</em></button>
@@ -796,6 +828,27 @@ textarea{resize:none;line-height:1.5}
 
 </div>
 <script>
+/* Перехват ошибок: Safari показывает голое «Script error»,
+   поэтому ловим сами и запоминаем настоящий текст.
+   Виден в Профиле → Последняя ошибка. */
+var LAST_ERR='';
+function noteErr(msg){
+  LAST_ERR=String(msg||'').slice(0,300);
+  var e=document.getElementById('errState');
+  if(e){ e.textContent=LAST_ERR?'есть':'нет'; e.style.color=LAST_ERR?'var(--danger)':'var(--navy-40)'; }
+  console.error('APP', LAST_ERR);
+}
+window.addEventListener('error', function(ev){
+  noteErr((ev.message||'ошибка')+(ev.filename?' @'+ev.lineno+':'+ev.colno:''));
+});
+window.addEventListener('unhandledrejection', function(ev){
+  noteErr('Необработанный сбой: '+(ev.reason&&ev.reason.message||ev.reason));
+});
+function showErr(){
+  if(!LAST_ERR){ toast('Ошибок не было'); return; }
+  toast(LAST_ERR);
+}
+
 var TABS={'s-sell':'s-sell','s-new':'s-sell','s-find':'s-find','s-deals':'s-deals','s-chat':'s-deals','s-me':'s-me','s-svc':'s-me','s-topup':'s-me','s-test':'s-sell','s-obj':'s-sell','s-api':'s-me'};
 function start(){
   var sp=document.getElementById('splash');
@@ -804,6 +857,7 @@ function start(){
 }
 window.addEventListener('DOMContentLoaded',function(){ dbLoad(); });
 function go(id){
+  if(id!=='s-new') editId=null;
   document.querySelectorAll('.screen').forEach(function(s){s.classList.toggle('on',s.id===id)});
   var t=TABS[id];
   document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('on',b.dataset.s===t)});
@@ -843,6 +897,24 @@ function filt(btn,g){
 }
 
 /* --- chat --- */
+function openBuyerChat(id){
+  var d=DB.deals.find(function(x){return x.id===id});
+  if(!d) return;
+  tRole='buyer'; tDeal=d; tHist=[];
+  document.getElementById('testObj').textContent=d.title+' · '+d.sub;
+  document.querySelector('#s-test .hdr h1').textContent='Ваш агент';
+  document.querySelector('#s-test .tbar').textContent=
+    'Агент работает на вас: ведёт переговоры с собственником, проверяет объект и докладывает. Давайте ему поручения — торговаться, уточнить условия, назначить просмотр.';
+  document.querySelector('#s-test .tpanel h4').firstChild.textContent='Что агент выяснил по объекту ';
+  document.getElementById('testIn').placeholder='Поручить агенту';
+  document.getElementById('testMsgs').innerHTML='';
+  document.getElementById('tColl').innerHTML='<div class="kvr"><span>Пока ничего</span><span>—</span></div>';
+  document.getElementById('tMiss').textContent='—';
+  setStatus('готов к работе','st-deal');
+  addMsg('in','Взял объект '+d.title+' в работу. Написал собственнику ваши условия. Что уточнить в первую очередь — цену, срок или условия по животным?','Ваш агент');
+  go('s-test');
+}
+
 function openChat(t,sub,hold){
   document.getElementById('chatT').textContent=t;
   document.getElementById('chatS').textContent=sub;
@@ -1043,16 +1115,26 @@ async function dbLoad(){
       var raw=await BE.get(KEY);
       if(raw) DB=JSON.parse(raw);
       if(!DB.api) DB.api=WORKER;
+      if(!Array.isArray(DB.objects)) DB.objects=[];
+      if(!Array.isArray(DB.deals)) DB.deals=[];
+      var maxId=0;
+      DB.objects.concat(DB.deals).forEach(function(x){ if(x&&x.id>maxId) maxId=x.id; });
+      if(!DB.seq || DB.seq<=maxId) DB.seq=maxId+1;
     }catch(e){ /* ключа ещё нет — нормально при первом запуске */ }
   }
   renderAll();
 }
 
 async function dbSave(){
-  if(!BE){ renderDbState(); return; }
-  try{ await BE.set(KEY,JSON.stringify(DB)); dbOK=true; }
-  catch(e){ dbOK=false; }
+  if(!BE){ dbOK=false; renderDbState(); return false; }
+  try{
+    var payload=JSON.stringify(DB);
+    await BE.set(KEY,payload);
+    var back=await BE.get(KEY);          // читаем обратно — записалось ли на самом деле
+    dbOK = String(back||'')===payload;
+  }catch(e){ dbOK=false; }
   renderDbState();
+  return dbOK;
 }
 
 async function dbReset(){
@@ -1091,8 +1173,38 @@ function seedDemo(){
      questions:['\u041a\u043e\u0433\u0434\u0430 \u043f\u043b\u0430\u043d\u0438\u0440\u0443\u0435\u0442\u0435 \u0432\u044b\u0439\u0442\u0438 \u043d\u0430 \u0441\u0434\u0435\u043b\u043a\u0443?','\u0418\u043f\u043e\u0442\u0435\u043a\u0430 \u043e\u0434\u043e\u0431\u0440\u0435\u043d\u0430 \u0438\u043b\u0438 \u043d\u0430\u043b\u0438\u0447\u043d\u044b\u0435?'],
      comment:''}
   ];
+  var oid=DB.objects[1].id;
+  var L=function(name){ return LISTINGS.filter(function(x){return x.title.indexOf(name)>=0})[0]||LISTINGS[0]; };
+  var l1=L('Обручева'), l2=L('корпус 3'), l3=L('Ленинский');
+  DB.deals=[
+    {id:DB.seq++, objId:null, kind:'find', ini:l1.ini,
+     title:l1.title, sub:l1.sub, facts:l1.facts,
+     brief:'Запрос: аренда, 2 комнаты, до 90 000 ₽, ЮЗАО, от года, можно с животными. Кто будет жить: 2 взрослых, кот. Занятость: найм, могу подтвердить доход.',
+     last:'Агент: собственник подтвердил просмотр на завтра в 19:00. Нужен залог до 19:00 сегодня.',
+     status:'Возможна сделка', time:'14:22', hold:true},
+    {id:DB.seq++, objId:null, kind:'find', ini:l2.ini,
+     title:l2.title, sub:l2.sub, facts:l2.facts,
+     brief:'Сделка: аренда. Бюджет: до 130 000 ₽. Комнат: 2. Район: Новая Москва. Кто будет жить: 2 взрослых, кот. '+
+           'ВОПРОСЫ КЛИЕНТА СОБСТВЕННИКУ (задать обязательно): что входит в коммуналку? | есть ли паркинг и сколько стоит?',
+     last:'Агент: задал ваши вопросы, жду ответ собственника.',
+     status:'Агент работает', time:'13:40', hold:false},
+    {id:DB.seq++, objId:null, kind:'find', ini:l3.ini,
+     title:l3.title, sub:l3.sub, facts:l3.facts,
+     brief:'Сделка: аренда. Бюджет: от 120 000 до 250 000 ₽. Комнат: 3. Район: ЮЗАО. Кто будет жить: 2 взрослых, кот. '+
+           'ВОПРОСЫ КЛИЕНТА СОБСТВЕННИКУ (задать обязательно): можно ли с котом? | готов ли собственник к торгу при годовом договоре?',
+     last:'Агент: собственник готов обсудить торг при договоре от года.',
+     status:'Агент работает', time:'вчера', hold:false},
+    {id:DB.seq++, objId:oid, kind:'sell', ini:'ИК',
+     title:'Ирина К.', sub:'Профсоюзная, 43 · покупатель',
+     last:'Прошла фильтр: ипотека одобрена, выход на сделку в течение месяца.',
+     status:'Ждёт вашего ответа', time:'вчера', hold:false},
+    {id:DB.seq++, objId:oid, kind:'sell', ini:'ДМ',
+     title:'Дмитрий М.', sub:'Красносельская, 8 · закрыт',
+     last:'Отклонён агентом: срок аренды 3 месяца, вы указали от года.',
+     status:'Закрыт', time:'2 дня', hold:false}
+  ];
   dbSave(); renderAll(); go('s-sell');
-  toast('\u0414\u0432\u0430 \u0434\u0435\u043c\u043e-\u043e\u0431\u044a\u0435\u043a\u0442\u0430 \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u044b');
+  toast('Демо готово: 2 объекта и 5 сделок');
 }
 
 /* ── Резервная копия текстом: работает всегда ── */
@@ -1178,8 +1290,11 @@ function renderDeals(){
 }
 function dealRow(d){
   var cls=d.status==='Возможна сделка'?'st-hold':(d.status==='Закрыт'?'st-off':'st-live');
+  var act = d.kind==='find'
+    ? 'openBuyerChat('+d.id+')'
+    : 'openChat(\''+esc(d.title)+'\',\''+esc(d.sub)+'\','+(d.hold?1:0)+')';
   return '<button class="c" style="display:flex;gap:11px;padding:13px 0;width:100%;text-align:left;'+
-    'border-bottom:1px solid var(--line)" onclick="openChat(\''+esc(d.title)+'\',\''+esc(d.sub)+'\','+(d.hold?1:0)+')">'+
+    'border-bottom:1px solid var(--line)" onclick="'+act+'">'+
     '<div class="av'+(d.kind==='find'?' a':'')+'">'+esc(d.ini)+'</div>'+
     '<div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:8px">'+
     '<b style="font-size:14.5px">'+esc(d.title)+'</b><span class="tiny">'+esc(d.time)+'</span></div>'+
@@ -1255,9 +1370,13 @@ function publish(){
   var o=collectForm();
   var i=DB.objects.findIndex(function(x){return x.id===o.id});
   if(i>=0) DB.objects[i]=o; else DB.objects.unshift(o);
-  dbSave(); renderAll();
+  renderAll();
+  var wasEdit=i>=0;
   editId=null; p=1; paint(); go('s-sell');
-  toast(i>=0?'Объявление обновлено':'Объект опубликован. Агент начал работу.');
+  dbSave().then(function(ok){
+    toast(ok ? (wasEdit?'Объявление обновлено':'Объект опубликован. Агент начал работу.')
+             : 'Объект добавлен, но сохранить не удалось — сделайте резервную копию в Профиле');
+  });
 }
 
 var curObj=null;
@@ -1283,7 +1402,6 @@ function openObject(id){
 
 function editObject(){
   if(!curObj) return;
-  editId=curObj.id;
   var o=curObj;
   deal(o.deal, document.querySelector('#s-new .seg button'+(o.deal==='rent'?':last-child':':first-child')));
   document.querySelector('#s-new .np[data-p="1"] input').value=o.addr;
@@ -1295,7 +1413,7 @@ function editObject(){
   var qi=document.querySelectorAll('#s-new .np[data-p="5"] input');
   o.questions.forEach(function(q,i){ if(qi[i]) qi[i].value=q; });
   if(document.getElementById('qcomment')) document.getElementById('qcomment').value=o.comment||'';
-  p=1; paint(); go('s-new');
+  p=1; paint(); go('s-new'); editId=o.id;
 }
 
 function delObject(){
@@ -1306,23 +1424,141 @@ function delObject(){
 }
 
 /* ═══════════ ПОИСК → СДЕЛКИ ═══════════ */
+/* Скрытая база объектов: агент подбирает из неё по параметрам поиска.
+   В бою сюда встанут выгрузки площадок и собственные объявления. */
+var LISTINGS=[
+  {title:'Профсоюзная, 104', sub:'79 000 ₽ · агентство', ini:'АГ',
+   price:79000, area:48, rooms:2, walk:'12 мин до Беляево',
+   tags:[{t:'Агентство'}],
+   facts:'2-к квартира, 48 м², 12 минут до Беляево, 4 из 9 этаж. Ставка 79 000 ₽, залог месяц. '+
+         'Сдаёт агентство, комиссия 50% от ставки. Про животных и срок данных нет.'},
+  {title:'Обручева, 16', sub:'84 000 ₽ · собственник Олег Н.', ini:'ОН',
+   price:84000, area:52, rooms:2, walk:'8 мин до Калужской',
+   tags:[{t:'Собственник',k:'g'},{t:'Можно с животными'}],
+   facts:'2-к квартира, 52 м², 8 минут до Калужской, 6 из 17 этаж. Ставка 84 000 ₽, залог месяц, '+
+         'коммуналка сверху. Собственник Олег Н. С животными согласен. Свободна с 10 числа. Мебель и техника есть.'},
+  {title:'Новаторов, 4к2', sub:'88 500 ₽ · собственник Марина В.', ini:'МВ',
+   price:88500, area:56, rooms:2, walk:'6 мин до Проспекта Вернадского',
+   tags:[{t:'Собственник',k:'g'},{t:'Залог за просмотр',k:'h'}],
+   facts:'2-к квартира, 56 м², 6 минут до Проспекта Вернадского, 11 из 14 этаж. Ставка 88 500 ₽, '+
+         'залог месяц, коммуналка включена. Собственник Марина В. Требуется залог за просмотр. '+
+         'Про животных условие не указано. Свободна сразу.'},
+  {title:'Гарибальди, 23', sub:'72 000 ₽ · собственник Пётр Л.', ini:'ПЛ',
+   price:72000, area:38, rooms:1, walk:'9 мин до Новых Черёмушек',
+   tags:[{t:'Собственник',k:'g'}],
+   facts:'1-к квартира, 38 м², 9 минут до Новых Черёмушек, 5 из 12 этаж. Ставка 72 000 ₽, залог месяц, '+
+         'коммуналка сверху. Собственник Пётр Л. Без животных. Срок от года. Ремонт простой, но чистый.'},
+  {title:'Вавилова, 54', sub:'95 000 ₽ · собственник Нина Р.', ini:'НР',
+   price:95000, area:61, rooms:2, walk:'7 мин до Академической',
+   tags:[{t:'Собственник',k:'g'},{t:'Можно с животными'}],
+   facts:'2-к квартира, 61 м², 7 минут до Академической, 3 из 9 этаж. Ставка 95 000 ₽, залог месяц, '+
+         'коммуналка включена. Собственник Нина Р. С кошками можно, с собаками нет. Свободна через две недели.'},
+  {title:'Сбер-Сити, ЖК «Сосновый Бор», корпус 3', sub:'118 000 ₽ · собственник Артём К.', ini:'АК',
+   price:118000, area:64, rooms:2, walk:'5 мин до Рассказовки',
+   tags:[{t:'Собственник',k:'g'},{t:'Новый дом'}],
+   facts:'2-к квартира, 64 м², ЖК «Сосновый Бор» в Сбер-Сити, корпус 3, 8 из 17 этаж, '+
+         '5 минут до Рассказовки. Ставка 118 000 ₽, залог месяц, коммуналка включена. Собственник Артём К. '+
+         'Дом сдан в прошлом году, отделка от застройщика, встроенная кухня. Закрытый двор, подземный паркинг '+
+         'за отдельную плату. С животными по договорённости. Срок от года.'},
+  {title:'Сбер-Сити, ЖК «Сосновый Бор», корпус 7', sub:'156 000 ₽ · собственник Юлия Д.', ini:'ЮД',
+   price:156000, area:82, rooms:3, walk:'7 мин до Рассказовки',
+   tags:[{t:'Собственник',k:'g'},{t:'Евроремонт'}],
+   facts:'3-к квартира, 82 м², ЖК «Сосновый Бор» в Сбер-Сити, корпус 7, 12 из 17 этаж, '+
+         '7 минут до Рассказовки. Ставка 156 000 ₽, залог месяц, коммуналка включена. Собственник Юлия Д. '+
+         'Дизайнерский ремонт, мебель вся новая, два санузла. Одно машиноместо включено в ставку. '+
+         'Только длительный срок, от полутора лет. Про животных условие не указано.'},
+  {title:'Сбер-Сити, ЖК «Сосновый Бор», корпус 12', sub:'470 000 ₽ · собственник Роман Ф.', ini:'РФ',
+   price:470000, area:170, rooms:4, walk:'11 мин до Рассказовки',
+   tags:[{t:'Собственник',k:'g'},{t:'Премиум'}],
+   facts:'4-к пентхаус, 170 м², ЖК «Сосновый Бор» в Сбер-Сити, корпус 12, последний 17 этаж, '+
+         '11 минут до Рассказовки. Ставка 470 000 ₽, залог два месяца, коммуналка включена. '+
+         'Собственник Роман Ф. Две террасы, панорамное остекление, три машиноместа, кладовая. '+
+         'Только от двух лет, предоплата за три месяца. С животными нельзя.'},
+  {title:'Ленинский, 131', sub:'135 000 ₽ · собственник Игорь С.', ini:'ИС',
+   price:135000, area:78, rooms:3, walk:'4 мин до Тропарёво',
+   tags:[{t:'Собственник',k:'g'},{t:'Евроремонт'}],
+   facts:'3-к квартира, 78 м², 4 минуты до Тропарёво, 9 из 22 этаж. Ставка 135 000 ₽, залог месяц, '+
+         'коммуналка включена. Собственник Игорь С. Свежий евроремонт, мебель дизайнерская. '+
+         'С животными по договорённости. Срок от года.'},
+  {title:'Удальцова, 3', sub:'110 000 ₽ · агентство', ini:'АГ',
+   price:110000, area:70, rooms:3, walk:'13 мин до Проспекта Вернадского',
+   tags:[{t:'Агентство'},{t:'Торг возможен'}],
+   facts:'3-к квартира, 70 м², 13 минут до Проспекта Вернадского, 2 из 16 этаж. Ставка 110 000 ₽, '+
+         'залог месяц. Сдаёт агентство, комиссия 40%. Второй этаж, окна на проезжую часть. '+
+         'Собственник готов к торгу при годовом договоре. Про животных данных нет.'},
+  {title:'Мичуринский, 9', sub:'185 000 ₽ · собственник Елена Б.', ini:'ЕБ',
+   price:185000, area:95, rooms:3, walk:'3 мин до Раменок',
+   tags:[{t:'Собственник',k:'g'},{t:'Новый дом'}],
+   facts:'3-к квартира, 95 м², 3 минуты до Раменок, 15 из 25 этаж. Ставка 185 000 ₽, залог месяц, '+
+         'коммуналка включена. Собственник Елена Б. Дом 2023 года, консьерж, закрытая территория. '+
+         'Вид на парк. С животными можно. Срок от года.'},
+  {title:'Мосфильмовская, 8', sub:'240 000 ₽ · собственник Алла Т.', ini:'АТ',
+   price:240000, area:110, rooms:4, walk:'10 мин до Ломоносовского',
+   tags:[{t:'Собственник',k:'g'},{t:'Премиум'}],
+   facts:'4-к квартира, 110 м², 10 минут до Ломоносовского проспекта, 14 из 18 этаж. Ставка 240 000 ₽, '+
+         'залог два месяца, коммуналка включена. Собственник Алла Т. Закрытая территория, два машиноместа, '+
+         'консьерж. Только длительный срок, от двух лет.'},
+  {title:'Кутузовский, 24', sub:'320 000 ₽ · собственник Виктор М.', ini:'ВМ',
+   price:320000, area:132, rooms:4, walk:'6 мин до Кутузовской',
+   tags:[{t:'Собственник',k:'g'},{t:'Премиум'}],
+   facts:'4-к квартира, 132 м², 6 минут до Кутузовской, 7 из 12 этаж, сталинский дом. Ставка 320 000 ₽, '+
+         'залог два месяца. Собственник Виктор М. Высокие потолки, авторский ремонт, камин. '+
+         'Коммуналка сверху, около 15 000 в месяц. Без животных и без детей до трёх лет.'},
+  {title:'Остоженка, 11', sub:'500 000 ₽ · собственник Дмитрий З.', ini:'ДЗ',
+   price:500000, area:190, rooms:4, walk:'4 мин до Кропоткинской',
+   tags:[{t:'Собственник',k:'g'},{t:'Премиум'}],
+   facts:'4-к квартира, 190 м², 4 минуты до Кропоткинской, 5 из 7 этаж, клубный дом. Ставка 500 000 ₽, '+
+         'залог три месяца. Собственник Дмитрий З. Вид на Храм Христа Спасителя, два машиноместа, '+
+         'охрана. Только от двух лет, только физическое лицо. С животными нельзя.'}
+];
+
 function sendAgent(){
-  var picked=document.querySelectorAll('#f3 .pick:checked');
+  var picked=document.querySelectorAll('#resList .pick:checked');
   if(!picked.length){ toast('Выберите хотя бы один объект'); return; }
-  var names=[['Обручева, 16','84 000 ₽ · собственник Олег Н.','ОН'],
-             ['Новаторов, 4к2','88 500 ₽ · собственник Марина В.','МВ'],
-             ['Профсоюзная, 104','79 000 ₽ · агентство','АГ']];
   Array.prototype.forEach.call(picked,function(chk,i){
-    var idx=Array.prototype.indexOf.call(document.querySelectorAll('#f3 .pick'),chk);
-    var n=names[idx]||names[0];
-    if(DB.deals.some(function(d){return d.title===n[0]})) return;
-    DB.deals.unshift({id:DB.seq++,objId:null,kind:'find',title:n[0],sub:n[1],ini:n[2],
+    var n=LISTINGS[+chk.dataset.i]||LISTINGS[0];
+    if(DB.deals.some(function(d){return d.title===n.title})) return;
+    DB.deals.unshift({id:DB.seq++,objId:null,kind:'find',title:n.title,sub:n.sub,ini:n.ini,
+      facts:n.facts, brief:collectBuyer(),
       last:'Агент: написал собственнику ваши условия, жду ответ.',
       status:'Агент работает',time:'сейчас',hold:i===0});
   });
   DB.balance=Math.max(0,DB.balance-9*picked.length);
   dbSave(); renderAll(); go('s-deals');
   toast('Агент начал работу · списано '+(9*picked.length)+' ₽');
+}
+
+function collectBuyer(){
+  var out=[];
+  var chips=Array.prototype.map.call(document.querySelectorAll('#qChips .chip.b'),
+    function(c){return c.textContent.replace(/\s*×$/,'').trim()});
+  if(chips.length) out.push('Пожелания: '+chips.join('; '));
+
+  out.push('Сделка: '+(bDealType==='rent'?'аренда':'покупка'));
+  var pmin=num('bPriceMin'), pmax=num('bPriceMax');
+  if(pmin||pmax) out.push('Бюджет: '+(pmin?'от '+money(String(pmin)):'')+(pmax?' до '+money(String(pmax)):'')+' ₽');
+  var amin=num('bAreaMin'), amax=num('bAreaMax');
+  if(amin||amax) out.push('Площадь: '+(amin?'от '+amin:'')+(amax?' до '+amax:'')+' м²');
+  var rooms=chipsOn('#bRooms');
+  if(rooms.length) out.push('Комнат: '+rooms.join(', '));
+  var area=(document.getElementById('bArea')||{}).value;
+  if(area) out.push('Район: '+area.trim());
+  var walk=document.getElementById('bWalk');
+  if(walk) out.push('До метро: '+walk.options[walk.selectedIndex].text);
+
+  document.querySelectorAll('#bAnketa input, #bAnketa select').forEach(function(e){
+    var fld=e.closest('.fld'); if(!fld) return;
+    var v=e.tagName==='SELECT'?e.options[e.selectedIndex].text:e.value;
+    if(v) out.push(fld.querySelector('label').textContent+': '+v);
+  });
+
+  var qs=[];
+  document.querySelectorAll('#bQs input').forEach(function(i){
+    if(i.value.trim()) qs.push(i.value.trim());
+  });
+  if(qs.length) out.push('ВОПРОСЫ КЛИЕНТА СОБСТВЕННИКУ (задать обязательно): '+qs.join(' | '));
+
+  return out.join('. ');
 }
 
 /* ═══════════ ТЕСТ РЕАЛЬНОГО АГЕНТА ═══════════ */
@@ -1390,7 +1626,7 @@ function parseAgent(raw){
 }
 
 async function askAgent(){
-  var sys=sysPrompt(tObj);
+  var sys = tRole==='buyer' ? buyerPrompt(tDeal) : sysPrompt(tObj);
   var errs=[];
   /* попытка 1 — системный промпт отдельным полем */
   try{
@@ -1408,7 +1644,7 @@ async function askAgent(){
   throw new Error(errs.join(' | '));
 }
 
-var tHist=[], tBusy=false, tObj=null;
+var tHist=[], tBusy=false, tObj=null, tRole='owner', tDeal=null;
 
 function collectObject(){
   var g=function(sel){var e=document.querySelector(sel);return e?(e.value||e.textContent||'').trim():'';};
@@ -1448,6 +1684,24 @@ function fromSaved(o){
     comment:o.comment};
 }
 
+function buyerPrompt(d){
+  return 'Ты — AI-агент, нанятый ПОКУПАТЕЛЕМ (арендатором). Ты ведёшь переговоры с собственником вместо своего клиента и докладываешь ему. Сейчас ты разговариваешь со своим клиентом. Отвечай по-русски, коротко и по-деловому, 1-3 предложения, как живой человек в мессенджере.\n\n' +
+  '=== ОБЪЕКТ, ПО КОТОРОМУ ТЫ РАБОТАЕШЬ ===\n'+d.facts+'\n\n' +
+  '=== ЧТО ТЫ ЗНАЕШЬ О СВОЁМ КЛИЕНТЕ ===\n'+(d.brief||'клиент пока ничего не указал')+'\n\n' +
+  '=== ПРАВИЛА ===\n' +
+  '1. НИКОГДА не выдумывай факты об объекте и не придумывай ответы собственника. Если данных нет — скажи, что запросишь у собственника.\n' +
+  '2. Ты работаешь на клиента, а не на собственника. Указывай на риски и слабые места объекта прямо, даже если это мешает сделке.\n' +
+  '3. Если в брифе есть ВОПРОСЫ КЛИЕНТА — ты обязан задать их собственнику и вернуться с ответами. Если ответа ещё нет, так и скажи.\n' +
+  '4. Не принимай за клиента решений о деньгах. Торг, залог, подписание — только с его явного согласия.\n' +
+  '5. Если клиент просит подобрать по национальности, религии, полу или расе — откажи и объясни, что это запрещено законом. Предложи законные критерии.\n' +
+  '6. Про залог за просмотр: 3000 ₽ вносятся за 24 часа до встречи, возвращаются если просмотр состоялся, но сделки нет.\n' +
+  '7. Если клиент просит то, чего ты не можешь (гарантировать цену, обещать за собственника) — скажи прямо.\n\n' +
+  '=== ФОРМАТ ОТВЕТА ===\nВерни ТОЛЬКО валидный JSON без markdown:\n' +
+  '{"reply":"твой ответ клиенту","collected":{"что уже известно по объекту":"значение"},' +
+  '"missing":["что ещё нужно выяснить у собственника"],"status":"уточняю|подходит|не подходит",' +
+  '"used":["какие факты об объекте ты использовал"]}';
+}
+
 function sysPrompt(o){
   return 'Ты — AI-агент по недвижимости, нанятый СОБСТВЕННИКОМ. Ты ведёшь переписку с потенциальным ' +
   (o.deal==='аренда'?'арендатором':'покупателем') + ' вместо собственника. Отвечай по-русски, коротко и по-деловому, как живой человек в мессенджере: 1-3 предложения, без списков и без канцелярита.\n\n' +
@@ -1472,6 +1726,12 @@ function sysPrompt(o){
 }
 
 function openTest(){
+  tRole='owner'; tDeal=null;
+  document.querySelector('#s-test .hdr h1').textContent='Проверка агента';
+  document.querySelector('#s-test .tbar').textContent=
+    'Вы — арендатор или покупатель. Пишите агенту как реальному человеку: спрашивайте про объект, торгуйтесь, пробуйте увиливать от его вопросов. Ниже видно, что агент усвоил.';
+  document.querySelector('#s-test .tpanel h4').firstChild.textContent='Что агент понял о вас ';
+  document.getElementById('testIn').placeholder='Написать агенту';
   tObj = curObj ? fromSaved(curObj) : collectObject();
   document.getElementById('testObj').textContent=tObj.address+' · '+tObj.price;
   if(!tHist.length) resetTest(true);
@@ -1479,6 +1739,7 @@ function openTest(){
 }
 
 function resetTest(silent){
+  if(tRole==='buyer'){ openBuyerChat(tDeal.id); return; }
   tHist=[]; tObj = curObj ? fromSaved(curObj) : collectObject();
   document.getElementById('testMsgs').innerHTML='';
   document.getElementById('tColl').innerHTML='<div class="kvr"><span>Пока ничего</span><span>—</span></div>';
@@ -1565,11 +1826,454 @@ function toast(msg){
   setTimeout(function(){t.style.transition='opacity .3s';t.style.opacity='0';
     setTimeout(function(){t.remove()},320)},2200);
 }
-function newBack(){ if(p>1){p--;paint();} else go('s-sell'); }
+function newBack(){ if(p>1){p--;paint();} else { editId=null; go('s-sell'); } }
 
 /* --- search flow --- */
-function mkQuery(){document.getElementById('f1').classList.add('hidden');document.getElementById('f2').classList.remove('hidden');document.getElementById('findScroll').scrollTop=0;}
-function showRes(){document.getElementById('f2').classList.add('hidden');document.getElementById('f3').classList.remove('hidden');document.getElementById('findScroll').scrollTop=0;}
+var qEditing=false, bDealType='rent';
+
+function qEdit(){
+  qEditing=!qEditing;
+  document.getElementById('qAdd').classList.toggle('hidden',!qEditing);
+  document.getElementById('qEditBtn').textContent=qEditing?'Готово':'Править';
+  document.querySelectorAll('#qChips .chip').forEach(paintChip);
+}
+function paintChip(c){
+  var t=c.textContent.replace(/\s*×$/,'').trim();
+  c.textContent = qEditing ? t+' ×' : t;
+  c.onclick = qEditing ? function(){ c.remove(); } : null;
+  c.style.cursor = qEditing ? 'pointer' : 'default';
+}
+function qAddChip(){
+  var i=document.getElementById('qNew'), v=i.value.trim();
+  if(!v) return;
+  var c=document.createElement('span');
+  c.className='chip b'; c.textContent=v;
+  document.getElementById('qChips').appendChild(c); paintChip(c);
+  i.value='';
+}
+
+function bDeal(t,btn){
+  bDealType=t;
+  btn.parentNode.querySelectorAll('button').forEach(function(b){b.classList.remove('on')});
+  btn.classList.add('on');
+  document.getElementById('bPriceL').textContent = t==='rent' ? 'Ставка, ₽ в месяц' : 'Цена, ₽';
+}
+
+function bAddQ(){
+  var d=document.createElement('div');
+  d.className='fld';
+  d.innerHTML='<input placeholder="Ваш вопрос собственнику">';
+  document.getElementById('bQs').appendChild(d);
+}
+
+/* Свободный текст разбирается в пожелания и подставляется в поля.
+   Всё, что агент не понял, остаётся отдельным чипом — ничего не теряется. */
+function mkQuery(){
+  var txt=document.querySelector('#f1 textarea').value.trim();
+  var chips=[];
+  var low=txt.toLowerCase();
+
+  var price=low.match(/(\d[\d\s.]{2,})\s*(?:тыс|000|к\b)?/g);
+  var nums=(low.match(/\d[\d\s.]*/g)||[]).map(function(n){
+    var v=parseInt(n.replace(/\D/g,''),10);
+    if(v>0 && v<1000) v=v*1000;
+    return v;
+  }).filter(function(v){return v>=10000});
+  if(nums.length){
+    document.getElementById('bPriceMax').value=money(String(Math.max.apply(null,nums)));
+    if(nums.length>1) document.getElementById('bPriceMin').value=money(String(Math.min.apply(null,nums)));
+  }
+
+  if(/куп|прода/.test(low)) bDeal('sale',document.querySelector('#f2 .seg button:last-child'));
+  if(/живот|кот|собак/.test(low)) chips.push('можно с животными');
+  if(/год|надолго|длительн/.test(low)) chips.push('срок от года');
+  if(/метро|пешком/.test(low)) chips.push('рядом с метро');
+  if(/ремонт/.test(low)) chips.push('с ремонтом');
+  if(/мебел/.test(low)) chips.push('с мебелью');
+  if(txt) chips.unshift(txt);
+
+  var wrap=document.getElementById('qChips');
+  wrap.innerHTML='';
+  chips.forEach(function(t){
+    var c=document.createElement('span'); c.className='chip b'; c.textContent=t;
+    wrap.appendChild(c);
+  });
+  qEditing=false;
+  document.getElementById('qAdd').classList.add('hidden');
+  document.getElementById('qEditBtn').textContent='Править';
+
+  document.getElementById('f1').classList.add('hidden');
+  document.getElementById('f2').classList.remove('hidden');
+  document.getElementById('findScroll').scrollTop=0;
+}
+
+function backToQuery(){
+  document.getElementById('f3').classList.add('hidden');
+  document.getElementById('f2').classList.remove('hidden');
+  document.getElementById('findScroll').scrollTop=0;
+}
+
+function num(id){ return parseInt((document.getElementById(id).value||'').replace(/\D/g,''),10)||0; }
+
+/* Результаты подбираются под введённые параметры. */
+function showRes(){
+  var pmin=num('bPriceMin'), pmax=num('bPriceMax');
+  var amin=num('bAreaMin'),  amax=num('bAreaMax');
+  var rooms=chipsOn('#bRooms');
+
+  var hits=LISTINGS.filter(function(l){
+    if(pmin && l.price<pmin) return false;
+    if(pmax && l.price>pmax) return false;
+    if(amin && l.area<amin) return false;
+    if(amax && l.area>amax) return false;
+    if(rooms.length && rooms.indexOf(String(l.rooms))<0 && rooms.indexOf('4+')<0) return false;
+    return true;
+  });
+
+  var L=document.getElementById('resList'), E=document.getElementById('resEmpty'),
+      F=document.getElementById('resFoot');
+  L.classList.toggle('hidden',!hits.length);
+  F.classList.toggle('hidden',!hits.length);
+  E.classList.toggle('hidden',!!hits.length);
+  document.getElementById('resCount').textContent = hits.length
+    ? hits.length+(hits.length===1?' объект':' объекта')+' под запрос' : 'Ничего не найдено';
+
+  L.innerHTML=hits.map(function(l,i){
+    return '<label class="obj" style="cursor:pointer">'+
+      '<div class="ph"></div><div style="flex:1;min-width:0">'+
+      '<div class="price num">'+money(String(l.price))+' ₽ / мес</div>'+
+      '<div class="addr">'+l.rooms+'-к · '+esc(l.title)+'</div>'+
+      '<div class="meta">'+l.area+' м² · '+esc(l.walk)+'</div>'+
+      '<div style="margin-top:6px">'+l.tags.map(function(t){
+        return '<span class="chip '+(t.k||'')+'">'+esc(t.t)+'</span>'}).join('')+'</div></div>'+
+      '<input type="checkbox" class="pick" data-i="'+LISTINGS.indexOf(l)+'" checked '+
+      'style="width:22px;height:22px;flex-shrink:0;margin-top:22px"></label>';
+  }).join('');
+
+  updateResBtn();
+  L.querySelectorAll('.pick').forEach(function(c){ c.onchange=updateResBtn; });
+
+  document.getElementById('resNote').innerHTML=
+    'Обработка одного объекта — <b>9 ₽</b>: агент напишет собственнику, задаст ваши вопросы и вернётся с ответами. '+
+    'Залог вносится только за 24 часа до просмотра.';
+
+  document.getElementById('f2').classList.add('hidden');
+  document.getElementById('f3').classList.remove('hidden');
+  document.getElementById('findScroll').scrollTop=0;
+}
+
+function updateResBtn(){
+  var n=document.querySelectorAll('#resList .pick:checked').length;
+  var b=document.getElementById('resBtn');
+  b.textContent = n ? 'Отправить агенту · '+(n*9)+' ₽' : 'Выберите объекты';
+  b.disabled = !n;
+}
+
+
+function collectBuyer(){
+  var chips=Array.prototype.map.call(document.querySelectorAll('#qChips .chip.b'),
+    function(c){return c.textContent.replace(/\s*×$/,'').trim()}).join(', ');
+  var flds=[];
+  document.querySelectorAll('#f2 .card input, #f2 .card select').forEach(function(e){
+    var fld=e.closest('.fld'); if(!fld) return;
+    var lbl=fld.querySelector('label').textContent;
+    var v=e.tagName==='SELECT'?e.options[e.selectedIndex].text:e.value;
+    if(v) flds.push(lbl+': '+v);
+  });
+  return (chips?'Запрос: '+chips+'. ':'')+flds.join('. ');
+}
+
+/* ═══════════ ТЕСТ РЕАЛЬНОГО АГЕНТА ═══════════ */
+
+function openApi(){
+  document.getElementById('apiUrl').value=DB.api||WORKER;
+  renderApi(); go('s-api');
+}
+function renderApi(){
+  var has=!!DB.api;
+  var st=document.getElementById('apiState');
+  if(st) st.textContent = has ? 'подключён' : 'не подключён';
+  var d=document.getElementById('apiDot');
+  if(d){ d.textContent = has ? 'да' : 'нет';
+         d.style.color = has ? 'var(--agent)' : 'var(--navy-40)'; }
+}
+function apiSave(){
+  var v=document.getElementById('apiUrl').value.trim();
+  if(v && !/^https:\/\//.test(v)){ toast('\u0410\u0434\u0440\u0435\u0441 \u0434\u043e\u043b\u0436\u0435\u043d \u043d\u0430\u0447\u0438\u043d\u0430\u0442\u044c\u0441\u044f \u0441 https://'); return; }
+  DB.api=v; dbSave(); renderApi();
+  toast(v?'\u0410\u0433\u0435\u043d\u0442 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0451\u043d':'\u041e\u0442\u043a\u043b\u044e\u0447\u0435\u043d\u043e');
+}
+async function apiTest(){
+  var v=document.getElementById('apiUrl').value.trim();
+  if(!v){ toast('\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0430\u0434\u0440\u0435\u0441'); return; }
+  toast('\u041f\u0440\u043e\u0432\u0435\u0440\u044f\u044e\u2026');
+  try{
+    var r=await fetch(v,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({system:'Ответь одним словом: работает',
+        messages:[{role:'user',content:'проверка связи'}]})});
+    var d=await r.json();
+    if(!r.ok) throw new Error(d.error||('HTTP '+r.status));
+    toast('\u0421\u0432\u044f\u0437\u044c \u0435\u0441\u0442\u044c: '+String(d.text||'').slice(0,40));
+  }catch(e){ toast('\u041d\u0435 \u043e\u0442\u0432\u0435\u0447\u0430\u0435\u0442: '+String(e.message).slice(0,60)); }
+}
+
+async function callModel(body){
+  var url = DB.api || 'https://api.anthropic.com/v1/messages';
+  var r=await fetch(url,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  if(!r.ok){
+    var txt='';
+    try{ var ej=await r.json(); txt=(ej.error&&ej.error.message)||JSON.stringify(ej); }
+    catch(e){ try{ txt=await r.text(); }catch(e2){ txt='нет тела ответа'; } }
+    throw new Error('HTTP '+r.status+': '+String(txt).slice(0,240));
+  }
+  var data=await r.json();
+  if(data.error) throw new Error(data.error.message||JSON.stringify(data.error));
+  if(typeof data.text==='string') return data.text;
+  return (data.content||[]).filter(function(b){return b.type==='text'})
+    .map(function(b){return b.text}).join('\n');
+}
+
+function parseAgent(raw){
+  raw=String(raw||'').replace(/```json|```/g,'').trim();
+  try{ return JSON.parse(raw); }
+  catch(e){
+    var a=raw.indexOf('{'), b=raw.lastIndexOf('}');
+    if(a>=0&&b>a){ try{ return JSON.parse(raw.slice(a,b+1)); }catch(e2){} }
+    return {reply:raw||'\u041f\u0443\u0441\u0442\u043e\u0439 \u043e\u0442\u0432\u0435\u0442.',collected:{},missing:[],status:'\u0443\u0442\u043e\u0447\u043d\u044f\u044e',used:[]};
+  }
+}
+
+async function askAgent(){
+  var sys = tRole==='buyer' ? buyerPrompt(tDeal) : sysPrompt(tObj);
+  var errs=[];
+  /* попытка 1 — системный промпт отдельным полем */
+  try{
+    return parseAgent(await callModel({
+      model:'claude-sonnet-4-6', max_tokens:1000, system:sys, messages:tHist
+    }));
+  }catch(e1){ errs.push('1) '+e1.message); if(DB.api) throw new Error(e1.message); }
+  /* попытка 2 — системный промпт первым сообщением */
+  try{
+    var merged=[{role:'user',content:sys+'\n\n---\n\n'+tHist[0].content}].concat(tHist.slice(1));
+    return parseAgent(await callModel({
+      model:'claude-sonnet-4-6', max_tokens:1000, messages:merged
+    }));
+  }catch(e2){ errs.push('2) '+e2.message); }
+  throw new Error(errs.join(' | '));
+}
+
+var tHist=[], tBusy=false, tObj=null, tRole='owner', tDeal=null;
+
+function collectObject(){
+  var g=function(sel){var e=document.querySelector(sel);return e?(e.value||e.textContent||'').trim():'';};
+  var rent = dealType==='rent';
+  var qs=[];
+  document.querySelectorAll('#s-new .np[data-p="5"] input').forEach(function(i){
+    if(i.value.trim() && !/родом/i.test(i.value)) qs.push(i.value.trim());
+  });
+  if(!qs.length) qs=['Когда планируете выйти на сделку?','Ипотека одобрена или наличные?'];
+  var crit=[];
+  document.querySelectorAll('#s-new .np[data-p="4"] select').forEach(function(sel){
+    var lbl=sel.closest('.fld').querySelector('label').textContent;
+    crit.push(lbl+': '+sel.options[sel.selectedIndex].text);
+  });
+  document.querySelectorAll('#s-new .np[data-p="4"] .chip.b').forEach(function(c){
+    crit.push(c.textContent.replace('✓','').trim());
+  });
+  return {
+    deal: rent?'аренда':'продажа',
+    address: g('#s-new .np[data-p="1"] input') || 'Москва, Профсоюзная, 43',
+    price: g('#priceI') + (rent?' ₽/мес':' ₽'),
+    area: '54 м²', rooms:'2', floor:'7 из 12',
+    desc: g('#s-new .np[data-p="1"] textarea'),
+    rent_extra: rent ? 'Залог 1 месяц. Срок от года. Коммуналка включена в ставку.' : '',
+    criteria: crit.join('; '),
+    questions: qs,
+    comment: (document.getElementById('qcomment')||{}).value || ''
+  };
+}
+
+function fromSaved(o){
+  return {deal:o.deal==='rent'?'аренда':'продажа', address:o.addr,
+    price:money(o.price)+(o.deal==='rent'?' ₽/мес':' ₽'),
+    area:o.area+' м²', rooms:o.rooms, floor:o.floor, desc:o.desc,
+    rent_extra:o.deal==='rent'?('Залог: '+o.deposit+'. Срок: '+o.term+'. Включено в ставку: '+(o.included.join(', ')||'ничего')+'.'):'',
+    criteria:o.criteria, questions:o.questions.length?o.questions:['Когда планируете выйти на сделку?'],
+    comment:o.comment};
+}
+
+function buyerPrompt(d){
+  return 'Ты — AI-агент, нанятый ПОКУПАТЕЛЕМ (арендатором). Ты ведёшь переговоры с собственником вместо своего клиента и докладываешь ему. Сейчас ты разговариваешь со своим клиентом. Отвечай по-русски, коротко и по-деловому, 1-3 предложения, как живой человек в мессенджере.\n\n' +
+  '=== ОБЪЕКТ, ПО КОТОРОМУ ТЫ РАБОТАЕШЬ ===\n'+d.facts+'\n\n' +
+  '=== ЧТО ТЫ ЗНАЕШЬ О СВОЁМ КЛИЕНТЕ ===\n'+(d.brief||'клиент пока ничего не указал')+'\n\n' +
+  '=== ПРАВИЛА ===\n' +
+  '1. НИКОГДА не выдумывай факты об объекте и не придумывай ответы собственника. Если данных нет — скажи, что запросишь у собственника.\n' +
+  '2. Ты работаешь на клиента, а не на собственника. Указывай на риски и слабые места объекта прямо, даже если это мешает сделке.\n' +
+  '3. Если в брифе есть ВОПРОСЫ КЛИЕНТА — ты обязан задать их собственнику и вернуться с ответами. Если ответа ещё нет, так и скажи.\n' +
+  '4. Не принимай за клиента решений о деньгах. Торг, залог, подписание — только с его явного согласия.\n' +
+  '5. Если клиент просит подобрать по национальности, религии, полу или расе — откажи и объясни, что это запрещено законом. Предложи законные критерии.\n' +
+  '6. Про залог за просмотр: 3000 ₽ вносятся за 24 часа до встречи, возвращаются если просмотр состоялся, но сделки нет.\n' +
+  '7. Если клиент просит то, чего ты не можешь (гарантировать цену, обещать за собственника) — скажи прямо.\n\n' +
+  '=== ФОРМАТ ОТВЕТА ===\nВерни ТОЛЬКО валидный JSON без markdown:\n' +
+  '{"reply":"твой ответ клиенту","collected":{"что уже известно по объекту":"значение"},' +
+  '"missing":["что ещё нужно выяснить у собственника"],"status":"уточняю|подходит|не подходит",' +
+  '"used":["какие факты об объекте ты использовал"]}';
+}
+
+function sysPrompt(o){
+  return 'Ты — AI-агент по недвижимости, нанятый СОБСТВЕННИКОМ. Ты ведёшь переписку с потенциальным ' +
+  (o.deal==='аренда'?'арендатором':'покупателем') + ' вместо собственника. Отвечай по-русски, коротко и по-деловому, как живой человек в мессенджере: 1-3 предложения, без списков и без канцелярита.\n\n' +
+  '=== ДАННЫЕ ОБЪЕКТА (единственный источник правды) ===\n' +
+  'Тип сделки: '+o.deal+'\nАдрес: '+o.address+'\nЦена: '+o.price+'\nПлощадь: '+o.area+
+  '\nКомнат: '+o.rooms+'\nЭтаж: '+o.floor+'\nОписание: '+(o.desc||'нет')+
+  (o.rent_extra?'\nУсловия аренды: '+o.rent_extra:'')+'\n\n' +
+  '=== УСЛОВИЯ СОБСТВЕННИКА ===\n'+(o.criteria||'не заданы')+'\n\n' +
+  '=== ВОПРОСЫ, КОТОРЫЕ ТЫ ОБЯЗАН ЗАДАТЬ ===\n'+o.questions.map(function(q,i){return (i+1)+'. '+q}).join('\n')+'\n\n' +
+  (o.comment?'=== ЗАМЕТКА СОБСТВЕННИКА (не показывать собеседнику) ===\n'+o.comment+'\n\n':'') +
+  '=== ПРАВИЛА ===\n' +
+  '1. НИКОГДА не выдумывай факты об объекте. Если данных нет — скажи прямо, что уточнишь у собственника.\n' +
+  '2. Задавай вопросы собственника по одному, вплетая их в разговор, а не анкетой.\n' +
+  '3. Если собеседник уходит от ответа — вежливо вернись к вопросу позже.\n' +
+  '4. Если собеседник просит отбор по национальности, религии, полу или расе — откажи и объясни, что это запрещено.\n' +
+  '5. Не передавай контакты собственника до внесения залога за просмотр (3000 ₽ за 24 часа до встречи).\n' +
+  '6. Про торг: обсуждай только если собеседник поднял тему, окончательное решение за собственником.\n\n' +
+  '=== ФОРМАТ ОТВЕТА ===\nВерни ТОЛЬКО валидный JSON без markdown и без пояснений:\n' +
+  '{"reply":"твой ответ собеседнику","collected":{"поле":"значение"},"missing":["что ещё не выяснено"],' +
+  '"status":"уточняю|подходит|не подходит","used":["какие данные объекта ты использовал в этом ответе"]}\n' +
+  'В collected клади только то, что собеседник САМ сообщил. В missing — вопросы собственника, на которые ещё нет ответа.';
+}
+
+function openTest(){
+  tRole='owner'; tDeal=null;
+  document.querySelector('#s-test .hdr h1').textContent='Проверка агента';
+  document.querySelector('#s-test .tbar').textContent=
+    'Вы — арендатор или покупатель. Пишите агенту как реальному человеку: спрашивайте про объект, торгуйтесь, пробуйте увиливать от его вопросов. Ниже видно, что агент усвоил.';
+  document.querySelector('#s-test .tpanel h4').firstChild.textContent='Что агент понял о вас ';
+  document.getElementById('testIn').placeholder='Написать агенту';
+  tObj = curObj ? fromSaved(curObj) : collectObject();
+  document.getElementById('testObj').textContent=tObj.address+' · '+tObj.price;
+  if(!tHist.length) resetTest(true);
+  go('s-test');
+}
+
+function resetTest(silent){
+  if(tRole==='buyer'){ openBuyerChat(tDeal.id); return; }
+  tHist=[]; tObj = curObj ? fromSaved(curObj) : collectObject();
+  document.getElementById('testMsgs').innerHTML='';
+  document.getElementById('tColl').innerHTML='<div class="kvr"><span>Пока ничего</span><span>—</span></div>';
+  document.getElementById('tMiss').textContent=tObj.questions.join(' · ');
+  setStatus('ждёт первого сообщения','st-off');
+  addMsg('in','Здравствуйте! Я агент собственника по объекту '+tObj.address+
+    '. Готов ответить на вопросы и рассказать про условия. Что вас интересует?','Агент');
+  if(!silent) toast('Диалог сброшен');
+}
+
+function setStatus(t,cls){
+  var e=document.getElementById('tSt'); e.textContent=t; e.className='tstatus '+cls;
+}
+
+function addMsg(kind,text,who){
+  var w=document.getElementById('testMsgs');
+  var d=document.createElement('div');
+  d.className='m '+kind;
+  d.innerHTML=(who?'<div class="who">'+who+'</div>':'')+esc(text);
+  w.appendChild(d);
+  var sc=document.getElementById('testScroll');
+  setTimeout(function(){sc.scrollTop=sc.scrollHeight},40);
+  return d;
+}
+function esc(t){var d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+
+async function sendTest(){
+  if(tBusy) return;
+  var inp=document.getElementById('testIn');
+  var txt=inp.value.trim();
+  if(!txt) return;
+  inp.value='';
+  addMsg('out',txt);
+  tHist.push({role:'user',content:txt});
+  tBusy=true;
+
+  var t=document.createElement('div');
+  t.className='m in'; t.innerHTML='<div class="thinking"><i></i><i></i><i></i></div>';
+  document.getElementById('testMsgs').appendChild(t);
+  var sc=document.getElementById('testScroll'); sc.scrollTop=sc.scrollHeight;
+
+  try{
+    var j=await askAgent();
+    t.remove();
+    addMsg('in',j.reply,'\u0410\u0433\u0435\u043d\u0442');
+    tHist.push({role:'assistant',content:j.reply});
+    renderPanel(j);
+  }catch(err){
+    t.remove();
+    var m=String(err&&err.message||err);
+    addMsg('sys','Сбой запроса: '+m);
+    var rt=document.createElement('button');
+    rt.className='btn ghost'; rt.style.marginTop='8px'; rt.textContent='Повторить';
+    rt.onclick=function(){ rt.remove(); tHist.pop(); document.getElementById('testIn').value=txt; sendTest(); };
+    document.getElementById('testMsgs').appendChild(rt);
+    console.error('agent error',err);
+  }
+  tBusy=false;
+}
+
+function renderPanel(j){
+  var c=document.getElementById('tColl');
+  var keys=Object.keys(j.collected||{});
+  c.innerHTML = keys.length
+    ? keys.map(function(k){return '<div class="kvr"><span>'+esc(k)+'</span><span>'+esc(String(j.collected[k]))+'</span></div>'}).join('')
+    : '<div class="kvr"><span>Пока ничего</span><span>—</span></div>';
+  if(j.used && j.used.length){
+    c.innerHTML += '<div class="kvr" style="border-top:1px solid var(--line);margin-top:7px;padding-top:7px">'+
+      '<span>Данные объекта в ответе</span><span style="color:var(--agent)">'+esc(j.used.join(', '))+'</span></div>';
+  }
+  document.getElementById('tMiss').textContent=(j.missing&&j.missing.length)?j.missing.join(' · '):'всё выяснено';
+  var st=j.status||'уточняю';
+  setStatus(st, st==='подходит'?'st-live':(st==='не подходит'?'st-off':'st-deal'));
+}
+
+/* --- toast --- */
+function toast(msg){
+  var t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:90px;z-index:200;'+
+    'background:#111C33;color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;font-weight:600;'+
+    'max-width:88%;text-align:center;box-shadow:0 8px 24px rgba(17,28,51,.3)';
+  document.body.appendChild(t);
+  setTimeout(function(){t.style.transition='opacity .3s';t.style.opacity='0';
+    setTimeout(function(){t.remove()},320)},2200);
+}
+function newBack(){ if(p>1){p--;paint();} else { editId=null; go('s-sell'); } }
+
+/* --- search flow --- */
+var qEditing=false;
+function qEdit(){
+  qEditing=!qEditing;
+  document.getElementById('qAdd').classList.toggle('hidden',!qEditing);
+  document.getElementById('qEditBtn').textContent=qEditing?'Готово':'Править';
+  document.querySelectorAll('#qChips .chip').forEach(function(c){ paintChip(c); });
+}
+function paintChip(c){
+  var t=c.textContent.replace(/\s*×$/,'').trim();
+  c.textContent = qEditing ? t+' ×' : t;
+  c.onclick = qEditing ? function(){ c.remove(); } : null;
+  c.style.cursor = qEditing ? 'pointer' : 'default';
+}
+function qAddChip(){
+  var i=document.getElementById('qNew'), v=i.value.trim();
+  if(!v) return;
+  var c=document.createElement('span');
+  c.className='chip b'; c.textContent=v;
+  document.getElementById('qChips').appendChild(c);
+  paintChip(c);
+  i.value='';
+}
+
 function resetFind(){document.getElementById('f3').classList.add('hidden');document.getElementById('f2').classList.add('hidden');document.getElementById('f1').classList.remove('hidden');}
 
 /* --- deposit --- */
