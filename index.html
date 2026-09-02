@@ -240,6 +240,28 @@ textarea{resize:none;line-height:1.5}
 @keyframes bl{0%,60%,100%{opacity:.25}30%{opacity:1}}
 .tbar{background:var(--blue-soft);border-radius:11px;padding:11px 13px;font-size:13px;
   line-height:1.5;color:#14357F;margin-bottom:12px}
+/* панель переговоров */
+.nego{background:var(--white);border:1px solid var(--line);border-radius:var(--r);
+  padding:14px 15px;margin-bottom:12px}
+.nego h4{margin:0 0 11px;font-size:13px;font-weight:700;color:var(--navy-60);
+  display:flex;justify-content:space-between;align-items:center}
+.nstep{display:flex;gap:10px;padding:7px 0;font-size:13.5px;line-height:1.4;align-items:flex-start}
+.nstep .dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}
+.nstep.wait .dot{background:var(--line);color:var(--navy-40)}
+.nstep.now  .dot{background:var(--blue);animation:sp 1s linear infinite}
+.nstep.done .dot{background:var(--agent)}
+.nstep.fail .dot{background:var(--danger)}
+.nstep.wait{color:var(--navy-40)}
+.nstep b{font-weight:700}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.nstep.now .dot{animation:none}}
+.nego .bar{height:4px;background:var(--surface);border-radius:2px;overflow:hidden;margin-top:11px}
+.nego .bar i{display:block;height:100%;background:var(--blue);width:0;transition:width .4s}
+.nego .cost{display:flex;justify-content:space-between;font-size:12.5px;color:var(--navy-40);
+  margin-top:9px;font-weight:600;font-variant-numeric:tabular-nums}
+.m.owner{background:var(--hold-soft);border-bottom-left-radius:5px;align-self:flex-start}
+.m.owner .who{color:var(--hold)}
 .screen{display:none}
 .screen.on{display:flex;flex-direction:column;flex:1;min-height:0}
 .hidden{display:none !important}
@@ -756,7 +778,20 @@ textarea{resize:none;line-height:1.5}
       </div>
     </div>
 
+    <div class="nego hidden" id="negoPanel">
+      <h4>Переговоры с собственником <span class="tstatus st-deal" id="negoSt">идут</span></h4>
+      <div id="negoSteps"></div>
+      <div class="bar"><i id="negoBar"></i></div>
+      <div class="cost"><span id="negoRound">Раунд 0 из 0</span><span id="negoCost">0 ₽</span></div>
+    </div>
+
     <div class="msgs" id="testMsgs"></div>
+
+  </div>
+  <div id="negoStart" class="hidden"
+       style="padding:11px 14px 0;border-top:1px solid var(--line);background:var(--white)">
+    <button class="btn" onclick="startNego()">Выйти на агента собственника</button>
+    <p class="hint" style="text-align:center;margin:7px 0 0">Агенты договорятся между собой · 4 ₽ за раунд</p>
   </div>
   <div class="composer">
     <input id="testIn" placeholder="Написать агенту" onkeydown="if(event.key==='Enter')sendTest()">
@@ -911,7 +946,10 @@ function openBuyerChat(id){
   document.getElementById('tColl').innerHTML='<div class="kvr"><span>Пока ничего</span><span>—</span></div>';
   document.getElementById('tMiss').textContent='—';
   setStatus('готов к работе','st-deal');
-  addMsg('in','Взял объект '+d.title+' в работу. Написал собственнику ваши условия. Что уточнить в первую очередь — цену, срок или условия по животным?','Ваш агент');
+  addMsg('in','Взял объект '+d.title+' в работу. Могу сразу выйти на агента собственника и согласовать условия — или сначала скажите, на что обратить внимание.','Ваш агент');
+  document.getElementById('negoPanel').classList.add('hidden');
+  document.getElementById('negoStart').classList.remove('hidden');
+  negoSteps=[]; negoCost=0;
   go('s-test');
 }
 
@@ -1737,6 +1775,8 @@ function openTest(){
     'Вы — арендатор или покупатель. Пишите агенту как реальному человеку: спрашивайте про объект, торгуйтесь, пробуйте увиливать от его вопросов. Ниже видно, что агент усвоил.';
   document.querySelector('#s-test .tpanel h4').firstChild.textContent='Что агент понял о вас ';
   document.getElementById('testIn').placeholder='Написать агенту';
+  document.getElementById('negoStart').classList.add('hidden');
+  document.getElementById('negoPanel').classList.add('hidden');
   tObj = curObj ? fromSaved(curObj) : collectObject();
   document.getElementById('testObj').textContent=tObj.address+' · '+tObj.price;
   if(!tHist.length) resetTest(true);
@@ -1819,6 +1859,152 @@ function renderPanel(j){
   var st=j.status||'уточняю';
   setStatus(st, st==='подходит'?'st-live':(st==='не подходит'?'st-off':'st-deal'));
 }
+
+/* ═══════════ ПЕРЕГОВОРЫ ДВУХ АГЕНТОВ ═══════════ */
+var negoBusy=false, negoSteps=[], negoCost=0;
+
+function renderNego(){
+  var w=document.getElementById('negoSteps');
+  w.innerHTML=negoSteps.map(function(s){
+    var mark = s.state==='done' ? '✓' : (s.state==='fail' ? '!' : (s.state==='now' ? '' : '·'));
+    return '<div class="nstep '+s.state+'"><i class="dot">'+mark+'</i><div>'+s.text+'</div></div>';
+  }).join('');
+  var done=negoSteps.filter(function(s){return s.state==='done'}).length;
+  document.getElementById('negoBar').style.width=
+    (negoSteps.length ? Math.round(done/negoSteps.length*100) : 0)+'%';
+  document.getElementById('negoCost').textContent=negoCost+' ₽';
+}
+function step(text){ negoSteps.push({text:text,state:'now'}); renderNego(); return negoSteps.length-1; }
+function stepDone(i,text){ negoSteps[i].state='done'; if(text) negoSteps[i].text=text; renderNego(); }
+function stepFail(i,text){ negoSteps[i].state='fail'; if(text) negoSteps[i].text=text; renderNego(); }
+
+/* Агент собственника: отвечает строго по данным объекта.
+   Он НЕ знает брифа покупателя — только то, что ему скажут в переговорах. */
+function ownerAgentPrompt(d){
+  return 'Ты — AI-агент СОБСТВЕННИКА объекта. С тобой связался агент потенциального арендатора. '+
+  'Ты отвечаешь по-русски, коротко и по-деловому, 1-3 предложения, как в деловой переписке.\n\n'+
+  '=== ДАННЫЕ ОБЪЕКТА (единственный источник правды) ===\n'+d.facts+'\n\n'+
+  '=== ПРАВИЛА ===\n'+
+  '1. НИКОГДА не выдумывай факты. Если в данных чего-то нет — так и скажи: "этого условия собственник не указывал, уточню отдельно".\n'+
+  '2. Торг: ты можешь обсуждать, но окончательное решение за собственником. Максимум, что ты можешь — сказать, что передашь предложение и назовёшь свою оценку шансов.\n'+
+  '3. Не занижай и не завышай условия, указанные в данных.\n'+
+  '4. Если просят отбор по национальности, религии, полу или расе — откажи, это запрещено законом.\n'+
+  '5. Контакты собственника не передавай до внесения залога за просмотр.\n\n'+
+  '=== ФОРМАТ ОТВЕТА ===\nВерни ТОЛЬКО валидный JSON без markdown:\n'+
+  '{"reply":"твой ответ агенту арендатора","agreed":{"что удалось согласовать":"значение"},'+
+  '"refused":["в чём отказал и почему"],"unknown":["о чём нет данных"],'+
+  '"status":"договорились|обсуждаем|отказ"}';
+}
+
+/* Агент покупателя в режиме переговоров: пишет агенту собственника. */
+function buyerNegoPrompt(d){
+  return 'Ты — AI-агент арендатора. Ты пишешь агенту собственника, чтобы согласовать условия. '+
+  'Отвечай по-русски, коротко и по делу, 1-3 предложения.\n\n'+
+  '=== ОБЪЕКТ ===\n'+d.facts+'\n\n'+
+  '=== ЧТО ПОРУЧИЛ КЛИЕНТ ===\n'+(d.brief||'особых условий нет')+'\n\n'+
+  '=== ЗАДАЧА ===\n'+
+  'Добейся ответов на вопросы клиента и по возможности улучши условия. Не соглашайся на то, '+
+  'чего клиент не поручал. Не выдумывай факты о клиенте. Если всё выяснено — скажи, что подытожишь клиенту.\n\n'+
+  '=== ФОРМАТ ОТВЕТА ===\nВерни ТОЛЬКО валидный JSON без markdown:\n'+
+  '{"reply":"твоё сообщение агенту собственника","done":false,"note":"что уже понятно"}';
+}
+
+async function startNego(){
+  if(negoBusy || !tDeal) return;
+  negoBusy=true;
+  negoSteps=[]; negoCost=0;
+  document.getElementById('negoStart').classList.add('hidden');
+  document.getElementById('negoPanel').classList.remove('hidden');
+  document.getElementById('negoSt').textContent='идут';
+  document.getElementById('negoSt').className='tstatus st-deal';
+
+  var MAX=3;
+  var chat=[];                         /* переписка агент↔агент */
+  var summary={agreed:{},refused:[],unknown:[]};
+
+  var i0=step('Агент собственника выходит на связь');
+  try{
+    for(var r=1; r<=MAX; r++){
+      document.getElementById('negoRound').textContent='Раунд '+r+' из '+MAX;
+
+      /* ход агента покупателя */
+      var si=(r===1? i0 : step('Раунд '+r+': ваш агент формулирует запрос'));
+      var bMsgs=chat.length? chat.slice() : [{role:'user',content:'Начни переговоры.'}];
+      var bRaw=await callModel({model:'claude-sonnet-4-6',max_tokens:1000,
+        system:buyerNegoPrompt(tDeal), messages:bMsgs});
+      var b=parseAgent(bRaw);
+      negoCost+=4; 
+      stepDone(si,'Ваш агент: '+shorten(b.reply));
+      addMsg('in',b.reply,'Ваш агент');
+      chat.push({role:'assistant',content:b.reply});
+
+      /* ход агента собственника */
+      var oi=step('Агент собственника отвечает');
+      var oMsgs=[{role:'user',content:b.reply}];
+      for(var k=chat.length-2;k>=0 && oMsgs.length<6;k-=2){
+        oMsgs.unshift({role:'assistant',content:chat[k].content});
+      }
+      var oRaw=await callModel({model:'claude-sonnet-4-6',max_tokens:1000,
+        system:ownerAgentPrompt(tDeal), messages:oMsgs});
+      var o=parseAgent(oRaw);
+      negoCost+=4;
+      stepDone(oi,'Собственник: '+shorten(o.reply));
+      addMsg('owner',o.reply,'Агент собственника');
+      chat.push({role:'user',content:o.reply});
+
+      Object.keys(o.agreed||{}).forEach(function(k){ summary.agreed[k]=o.agreed[k]; });
+      summary.refused=summary.refused.concat(o.refused||[]);
+      summary.unknown=summary.unknown.concat(o.unknown||[]);
+
+      if(o.status==='договорились' || b.done===true){ break; }
+      if(o.status==='отказ'){
+        document.getElementById('negoSt').textContent='отказ';
+        document.getElementById('negoSt').className='tstatus st-off';
+        break;
+      }
+    }
+
+    var fi=step('Ваш агент подводит итог');
+    var sum=[];
+    Object.keys(summary.agreed).forEach(function(k){ sum.push(k+': '+summary.agreed[k]); });
+    var text='Итог по объекту.\n'+
+      (sum.length? 'Согласовано: '+sum.join('; ')+'.' : 'Согласовать пока ничего не удалось.')+
+      (summary.refused.length? '\nОтказ: '+summary.refused.join('; ')+'.' : '')+
+      (summary.unknown.length? '\nНет данных: '+summary.unknown.join('; ')+'.' : '');
+    stepDone(fi,'Итог готов');
+    addMsg('in',text,'Ваш агент');
+
+    renderPanel({reply:text, collected:summary.agreed,
+      missing:summary.unknown, status:'уточняю', used:[]});
+
+    tDeal.last='Агент: '+shorten(text);
+    tDeal.status='Возможна сделка';
+    DB.balance=Math.max(0,DB.balance-negoCost);
+    dbSave(); renderBalance(); renderDeals();
+
+    document.getElementById('negoSt').textContent='завершены';
+    document.getElementById('negoSt').className='tstatus st-live';
+  }catch(e){
+    var last=negoSteps.length-1;
+    if(last>=0) stepFail(last,'Сбой: '+(e&&e.message||e));
+    noteErr('Переговоры: '+(e&&e.message||e));
+    document.getElementById('negoSt').textContent='сбой';
+    document.getElementById('negoSt').className='tstatus st-off';
+    document.getElementById('negoStart').classList.remove('hidden');
+  }
+  document.getElementById('negoRound').textContent='Готово';
+  renderNego();
+  negoBusy=false;
+  var b=document.querySelector('#negoStart .btn');
+  if(b) b.textContent='Провести ещё раунд переговоров';
+  document.getElementById('negoStart').classList.remove('hidden');
+}
+
+function shorten(t){
+  t=String(t||'').replace(/\s+/g,' ').trim();
+  return t.length>72 ? t.slice(0,72)+'…' : t;
+}
+
 
 /* --- toast --- */
 function toast(msg){
