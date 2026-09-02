@@ -1897,11 +1897,22 @@ function ownerAgentPrompt(d){
 }
 
 /* Агент покупателя в режиме переговоров: пишет агенту собственника. */
+function clientOrders(){
+  /* последние поручения клиента из переписки — они важнее анкеты,
+     потому что человек мог передумать уже после её заполнения */
+  var said=tHist.filter(function(m){return m.role==='user'})
+    .slice(-6).map(function(m){return m.content});
+  return said.length ? said.join(' | ') : '';
+}
+
 function buyerNegoPrompt(d){
+  var orders=clientOrders();
   return 'Ты — AI-агент арендатора. Ты пишешь агенту собственника, чтобы согласовать условия. '+
   'Отвечай по-русски, коротко и по делу, 1-3 предложения.\n\n'+
   '=== ОБЪЕКТ ===\n'+d.facts+'\n\n'+
-  '=== ЧТО ПОРУЧИЛ КЛИЕНТ ===\n'+(d.brief||'особых условий нет')+'\n\n'+
+  '=== АНКЕТА КЛИЕНТА (заполнена раньше) ===\n'+(d.brief||'особых условий нет')+'\n\n'+
+  (orders? '=== ПОСЛЕДНИЕ ПОРУЧЕНИЯ КЛИЕНТА (ГЛАВНЕЕ АНКЕТЫ) ===\n'+orders+
+    '\nЕсли поручения противоречат анкете — выполняй поручения, анкета устарела.\n\n' : '')+
   '=== ЗАДАЧА ===\n'+
   'Добейся ответов на вопросы клиента и по возможности улучши условия. Не соглашайся на то, '+
   'чего клиент не поручал. Не выдумывай факты о клиенте. Если всё выяснено — скажи, что подытожишь клиенту.\n\n'+
@@ -1977,6 +1988,7 @@ async function startNego(){
     renderPanel({reply:text, collected:summary.agreed,
       missing:summary.unknown, status:'уточняю', used:[]});
 
+    tDeal.brief=(tDeal.brief||'')+(clientOrders()? ' Поручения клиента: '+clientOrders()+'.' : '');
     tDeal.last='Агент: '+shorten(text);
     tDeal.status='Возможна сделка';
     DB.balance=Math.max(0,DB.balance-negoCost);
